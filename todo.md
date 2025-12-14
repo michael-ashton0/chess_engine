@@ -8,7 +8,7 @@
         * [x] en-passant target square
         * [ ] halfmove clock / fullmove number
         * [ ] FEN export matches internal state
-    * [] Make/Unmake move
+    * [ ] Make/Unmake move
         * [x] Maintain piece bitboards correctly on capture
         * [x] Maintain universal occupancy / side occupancy
         * [x] Toggle side-to-move
