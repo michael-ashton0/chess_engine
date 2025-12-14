@@ -1,6 +1,6 @@
 # Progress as of 12/14 #
 
-* [] Board representation
+* [ ] Board representation
     * [x] FEN compatibility
         * [x] piece placement
         * [x] side-to-move
@@ -24,7 +24,7 @@
     * [x] Queen, Rook, Bishop
         * [x] Verify sliding attacks stop at blockers
         * [x] Distinguish quiet vs capture moves cleanly
-    * [] King, Knight
+    * [ ] King, Knight
         * [x] King adjacency moves exclude own pieces
         * [ ] King moves must not move into check (later)
     * [ ] Pawn
@@ -36,7 +36,7 @@
             * [x] if enemy piece exists
         * [x] Single pushes
             * [x] Blocked forward square prevents move
-        * [] Promotions
+        * [ ] Promotions
             * [x] Quiet promotions (push into last rank)
             * [x] Capture promotions (capture into last rank)
             * [x] Generate N/B/R/Q promotion options
@@ -61,10 +61,10 @@
         * [ ] Make/unmake castling (king + rook movement)
 
 * [ ] Store move list
-    * [] Define `Move` encoding/struct
+    * [ ] Define `Move` encoding/struct
         * [x] from / to
         * [x] moved piece (optional but useful)
-        * [] captured piece (or captured piece type)
+        * [ ] captured piece (or captured piece type)
         * [x] flags: capture, promotion, en-passant, castling, double-push
         * [x] promotion piece type
     * [ ] Move container strategy
