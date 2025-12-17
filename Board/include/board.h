@@ -49,6 +49,7 @@ struct Board {
     void setup();
     void makeMove(Move move);
     void printBoard();
+    void importFen(std::string fen);
     std::string exportFen();
     
     uint64_t occWhite()         const { return white; }

@@ -26,6 +26,16 @@ void QueenMoveGen::generateWhite(Board& board,
                 candidate.to = toSq;
 
                 candidate.isCapture = (enemies & (1ULL << toSq)) != 0;
+                if (candidate.isCapture) {
+                    uint64_t toMask = 1ULL << toSq;
+
+                    for (int i = 6; i < 12; ++i) {
+                        if (board.pieceBitboards[i] & toMask) {
+                            candidate.capturedPiece = static_cast<PieceType>(i - 6);
+                            break;
+                        }
+                    }
+                } 
                 candidate.piece = QUEEN;
                 moves.push_back(candidate);
             }
@@ -56,11 +66,22 @@ void QueenMoveGen::generateBlack(Board& board,
                 candidate.to = toSq;
 
                 candidate.isCapture = (enemies & (1ULL << toSq)) != 0;
+                
+                if (candidate.isCapture) {
+                    uint64_t toMask = 1ULL << toSq;
+
+                    for (int i = 0; i < 7; ++i) {
+                        if (board.pieceBitboards[i] & toMask) {
+                            candidate.capturedPiece = static_cast<PieceType>(i);
+                            break;
+                        }
+                    }
+                }
                 candidate.piece = QUEEN;
                 moves.push_back(candidate);
             }
-    }
-};
+        }
+    };
 
 uint64_t QueenMoveGen::nonMagicQueenAttacks(int sq, uint64_t occupied) {
 

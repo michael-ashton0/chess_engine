@@ -31,7 +31,7 @@
         * [x] Double pushes
             * [x]  Only from starting rank
             * [x] Both squares must be empty
-            * [ ] Set en-passant target square on double push
+            * [ ] Set en-passant target square on double push (I think this is done but needs to be tested)
         * [x] Captures
             * [x] if enemy piece exists
         * [x] Single pushes

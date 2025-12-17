@@ -23,7 +23,17 @@ void KingMoveGen::generateWhite(Board& board,
                 candidate.to    = to;
 
                 candidate.isCapture = (enemies & (1ULL << to)) != 0;
-                candidate.piece     = KING;
+                if (candidate.isCapture) {
+                    uint64_t toMask = 1ULL << to;
+
+                    for (int i = 6; i < 12; ++i) {
+                        if (board.pieceBitboards[i] & toMask) {
+                            candidate.capturedPiece = static_cast<PieceType>(i - 6);
+                            break;
+                        }
+                    }
+                }
+                candidate.piece = KING;
 
                 moves.push_back(candidate);
             }
@@ -47,8 +57,18 @@ void KingMoveGen::generateBlack(Board& board,
                 candidate.to    = to;
 
                 candidate.isCapture = (enemies & (1ULL << to)) != 0;
-                candidate.piece     = KING;
+                if (candidate.isCapture) {
+                    uint64_t toMask = 1ULL << to;
 
+                    for (int i = 0; i < 7; ++i) {
+                        if (board.pieceBitboards[i] & toMask) {
+                            candidate.capturedPiece = static_cast<PieceType>(i);
+                            break;
+                        }
+                    }
+                }
+                
+                candidate.piece = KING;
                 moves.push_back(candidate);
             }
         }

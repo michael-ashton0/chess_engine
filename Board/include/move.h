@@ -11,13 +11,14 @@ struct Move {
     uint8_t from;   //0-63
     uint8_t to;     //0-63
     bool isCapture = false;
+    PieceType capturedPiece;
 
     // Pawn Specific
     // might get scrapped if i can't figure out 
     // passing values to a Move object from movePawn
     // want to keep for en Passant clearing ease of use
-    bool isDoublePush = false;
-    bool isEnPassant = false;
-    bool isPromotion = false;
-    PieceType promotionPiece = QUEEN; //initialize to queen
+    bool isDoublePush   = false;
+    bool isEnPassant    = false;
+    bool isPromotion    = false;
+    PieceType promotionPiece;
 };

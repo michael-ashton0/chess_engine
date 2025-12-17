@@ -37,7 +37,7 @@ void Board::place(Piece p, int file, int rank) {
     };
 
 bool Board::isAttacked(uint64_t sq, Side side) {
-
+ // could be obsolete in favor of adding this inside the move
 }
 
 void Board::removeEnemyPieceAt(uint64_t sq, Side enemy) {
@@ -146,6 +146,9 @@ void Board::printBoard() {
         }
     };
 
+void Board::importFen(std::string fen) {
+
+}
     // Returns a full FEN string. Assumptions: side to move = white, no castling rights,
     // no en-passant, halfmove clock = 0, fullmove number = 1.
     // AI for now...

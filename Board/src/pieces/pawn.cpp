@@ -1,10 +1,10 @@
 #include "pawn.h"
 
 // en passant TBAAAA
-// promotions too
+// promotions are here but not sure if optimal
 void PawnMoveGen::generateWhite(Board& board,
                               std::vector<Move>& moves,
-                              uint64_t enPassantSquare = 0ULL) 
+                              uint64_t enPassantSquare) 
 {
     uint64_t pawns      = board.pawnsWhite();
     uint64_t enemies    = board.occBlack();
@@ -42,7 +42,7 @@ void PawnMoveGen::generateWhite(Board& board,
 
 void PawnMoveGen::generateBlack(Board& board,
                                 std::vector<Move>& moves,
-                                uint64_t enPassantSquare = 0ULL) {
+                                uint64_t enPassantSquare) {
 
     uint64_t pawns      = board.pawnsBlack();
     uint64_t enemies    = board.occWhite();
@@ -60,6 +60,16 @@ void PawnMoveGen::generateBlack(Board& board,
             candidate.to    = toSq;
             
             candidate.isCapture = (enemies & (1ULL << toSq)) != 0;
+            if (candidate.isCapture) {
+                uint64_t toMask = 1ULL << toSq;
+
+                for (int i = 0; i < 7; ++i) {
+                    if (board.pieceBitboards[i] & toMask) {
+                        candidate.capturedPiece = static_cast<PieceType>(i);
+                        break;
+                    }
+                }
+            }
             candidate.piece     = PAWN;
             if (rankOf(toSq) == RANK_1) {
                 candidate.isPromotion = true;
@@ -89,10 +99,11 @@ uint64_t PawnMoveGen::movePawn(Board& board, int sq, bool color) {
     uint64_t bb = 1ULL << sq;
 
     if (color) {
-        //move
+        //single move
         uint64_t first = north(bb) & empty;
         moves |= first;
 
+        //double move
         if (rank == 2 && first) {
             uint64_t second = north(first) & empty;
             moves |= second;
