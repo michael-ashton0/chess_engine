@@ -61,10 +61,10 @@
         * [ ] Make/unmake castling (king + rook movement)
 
 * [ ] Store move list
-    * [ ] Define `Move` encoding/struct
+    * [x] Define `Move` encoding/struct
         * [x] from / to
         * [x] moved piece (optional but useful)
-        * [ ] captured piece (or captured piece type)
+        * [x] captured piece (or captured piece type)
         * [x] flags: capture, promotion, en-passant, castling, double-push
         * [x] promotion piece type
     * [ ] Move container strategy
