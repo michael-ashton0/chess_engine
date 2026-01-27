@@ -1,4 +1,4 @@
-# Progress as of 12/14 #
+# Progress as of 1/26 #
 
 * [ ] Board representation
     * [x] FEN compatibility
@@ -12,7 +12,7 @@
         * [x] Maintain piece bitboards correctly on capture
         * [x] Maintain universal occupancy / side occupancy
         * [x] Toggle side-to-move
-        * [ ] Track captured piece type for unmake
+        * [x] Track captured piece type for unmake
         * [ ] Restore previous castling rights on unmake
         * [ ] Restore previous en-passant square on unmake
         * [ ] Handle promotions in make/unmake
@@ -27,11 +27,11 @@
     * [ ] King, Knight
         * [x] King adjacency moves exclude own pieces
         * [ ] King moves must not move into check (later)
-    * [ ] Pawn
+    * [x] Pawn
         * [x] Double pushes
             * [x]  Only from starting rank
             * [x] Both squares must be empty
-            * [ ] Set en-passant target square on double push (I think this is done but needs to be tested)
+            * [x] Set en-passant target square on double push
         * [x] Captures
             * [x] if enemy piece exists
         * [x] Single pushes
@@ -68,7 +68,7 @@
         * [x] flags: capture, promotion, en-passant, castling, double-push
         * [x] promotion piece type
     * [ ] Move container strategy
-        * [x] vector reserve sizing / per-node reuse (perf later)
+        * [ ] vector reserve sizing / per-node reuse (perf later)
         * [ ] clear vs reuse per ply
     * [ ] Generate pseudo-legal move list for side to move
         * [ ] separate quiet vs captures (does this matter?)

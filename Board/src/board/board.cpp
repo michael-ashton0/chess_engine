@@ -1,5 +1,5 @@
 #include <iostream>
-#include "board.h"
+#include "../../include/board.h"
 
 // TODO::
 //  Is it a good idea to add rank checkers? 
@@ -37,7 +37,8 @@ void Board::place(Piece p, int file, int rank) {
     };
 
 bool Board::isAttacked(uint64_t sq, Side side) {
- // could be obsolete in favor of adding this inside the move
+    // could be obsolete in favor of adding this inside the move
+    return false;
 }
 
 void Board::removeEnemyPieceAt(uint64_t sq, Side enemy) {
@@ -102,7 +103,7 @@ void Board::setup(){
 void Board::makeMove(Move move) {
     // take the move.to, or it with the old board, how to examine specifics?
     // find the corresponding piece bitboard, update it with the move
-    // if caputre, update the board of the captured piece too?
+    // if capture, update the board of the captured piece too?
     // quiet move should be a simple or
     // does move need an attached piece type?
 
@@ -147,7 +148,7 @@ void Board::printBoard() {
     };
 
 void Board::importFen(std::string fen) {
-
+    return;
 }
     // Returns a full FEN string. Assumptions: side to move = white, no castling rights,
     // no en-passant, halfmove clock = 0, fullmove number = 1.
@@ -187,7 +188,7 @@ std::string Board::exportFen() {
         if (empty > 0) fen.push_back(char('0' + empty));
         if (rank > 0) fen.push_back('/');
     }
-    // Append minimal metadata: side to move, castling, en-passant, halfmove, fullmove
+    // Append metadata
     fen += " w - - 0 1";
     return fen;
 };

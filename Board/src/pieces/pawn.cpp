@@ -1,6 +1,8 @@
 #include "pawn.h"
 
-// en passant TBAAAA
+// For en passant, use column masks to find adjacent two columns for pawns on 4th/5th rank
+// then if the diagonal square is an en passant sqare, add the move
+// if an en passant square is present, no matter what we remove it after each move
 // promotions are here but not sure if optimal
 void PawnMoveGen::generateWhite(Board& board,
                               std::vector<Move>& moves,

@@ -1,6 +1,5 @@
 #include <iostream>
 #include "board/board.cpp"
-#include "../include/board.h"
 
 int main() {
     Board br;
