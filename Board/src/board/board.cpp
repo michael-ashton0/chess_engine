@@ -109,8 +109,17 @@ void Board::makeMove(Move move) {
 
     Side them = (side == WHITE ? BLACK : WHITE);
 
-    pieceBitboards[move.piece] ^= move.from;
-    pieceBitboards[move.piece] |= move.to;
+    uint64_t fromMask = 1ULL << move.from;
+    uint64_t toMask = 1ULL << move.to;
+    if (side == 0) {
+        pieceBitboards[move.piece] ^= fromMask;
+        pieceBitboards[move.piece] |= toMask;
+    }
+    
+    else {
+        pieceBitboards[move.piece + 6] ^= fromMask;
+        pieceBitboards[move.piece + 6] |= toMask;
+    }
 
     if (move.isCapture == true) {
         removeEnemyPieceAt(move.to, them);
@@ -118,7 +127,6 @@ void Board::makeMove(Move move) {
 
     side = them;
     update();
-    
 };
 
 void Board::printBoard() {
@@ -144,8 +152,13 @@ void Board::printBoard() {
             // arr[sq] = c;
         }
         std::cout << '\n';
-        }
-    };
+    }
+    int length = 50;
+    for (int i = 0; i < length; ++i) {
+        std::cout << "-";
+    }
+    std::cout << std::endl;
+};
 
 void Board::importFen(std::string fen) {
     return;
