@@ -36,6 +36,19 @@ void Board::place(Piece p, int file, int rank) {
         pieceBitboards[p] |= (1ULL << sq);
     };
 
+inline bool Board::pieceTypeAtSquare(Side s, int sq, PieceType& out) const {
+    uint64_t mask = 1ULL << sq;
+    int offset = (s == WHITE) ? 0 : 6;
+
+    for (int p = 0; p < 6; ++p) {
+        if (pieceBitboards[offset + p] & mask) {
+            out = static_cast<PieceType>(p);
+            return true;
+        }
+    }
+    return false;
+}
+
 bool Board::isAttacked(uint64_t sq, Side side) {
     // could be obsolete in favor of adding this inside the move
     return false;
@@ -100,34 +113,99 @@ void Board::setup(){
     place(king_w, 4,0);
     };
 
-void Board::makeMove(Move move) {
-    // take the move.to, or it with the old board, how to examine specifics?
-    // find the corresponding piece bitboard, update it with the move
-    // if capture, update the board of the captured piece too?
-    // quiet move should be a simple or
-    // does move need an attached piece type?
+void Board::makeMove(const Move& move) {
+    //heavily audited by chat
+    Undo undo;
+    undo.prevEnPassantSq = enPassantSq;
+    undo.prevSide = side;
 
-    Side them = (side == WHITE ? BLACK : WHITE);
+    Side us     = side;
+    Side them   = (side == WHITE ? BLACK : WHITE);
 
-    uint64_t fromMask = 1ULL << move.from;
-    uint64_t toMask = 1ULL << move.to;
-    if (side == 0) {
-        pieceBitboards[move.piece] ^= fromMask;
-        pieceBitboards[move.piece] |= toMask;
-    }
-    
-    else {
-        pieceBitboards[move.piece + 6] ^= fromMask;
-        pieceBitboards[move.piece + 6] |= toMask;
-    }
+    uint64_t fromMask   = 1ULL << move.from;
+    uint64_t toMask     = 1ULL << move.to;
 
-    if (move.isCapture == true) {
-        removeEnemyPieceAt(move.to, them);
+    enPassantSq = 0ULL;
+
+    auto idx = [&](PieceType p, Side s) -> int {
+        return (s == WHITE) ? (int)p : (int)p + 6;
     };
+
+    if (move.isCapture) {
+        undo.wasCapture = true;
+        if (move.isEnPassant) {
+            int captureSq           = (us == WHITE) ? (move.to - 8) : (move.to + 8);
+            uint64_t captureMask    = 1ULL << captureSq;
+            
+            pieceBitboards[idx(PAWN, them)] ^= captureMask;
+            
+            undo.capturedSq     = captureSq;
+            undo.capturedPiece  = PAWN;
+        }
+
+        else {
+            removeEnemyPieceAt(move.to, them);
+            undo.capturedSq     = move.to;
+            undo.capturedPiece  = move.capturedPiece;
+        }
+    }
+
+    if (move.isPromotion) {
+        pieceBitboards[idx(PAWN, us)]                   ^= fromMask;
+        pieceBitboards[idx(move.promotionPiece, us)]    |= toMask;
+
+        undo.wasPromotion   = true;
+        undo.promotionPiece = move.promotionPiece;
+    }
+    else {
+        int pieceIdx = idx(move.piece, us);
+        pieceBitboards[pieceIdx] ^= fromMask;
+        pieceBitboards[pieceIdx] |= toMask;
+    }
+    if (move.piece == PAWN && move.isDoublePush) {
+        int epSq = (us == WHITE) ? (move.from + 8) : (move.from - 8);
+        enPassantSq = 1ULL << epSq;
+    }
+
+    history.push_back(undo);
 
     side = them;
     update();
 };
+
+void Board::unmakeMove(const Move& move) {
+    Undo u = history.back();
+    history.pop_back();
+
+    Side us   = u.prevSide;
+    Side them = (us == WHITE ? BLACK : WHITE);
+
+    auto idx = [&](PieceType p, Side s) -> int {
+        return (s == WHITE) ? (int)p : (int)p + 6;
+    };
+
+    uint64_t fromMask = 1ULL << move.from;
+    uint64_t toMask   = 1ULL << move.to;
+
+    side = us;
+    enPassantSq = u.prevEnPassantSq;
+
+    if (u.wasPromotion) {
+        pieceBitboards[idx(u.promotionPiece, us)] ^= toMask;
+        pieceBitboards[idx(PAWN, us)] |= fromMask;
+    } else {
+        int pIndex = idx(move.piece, us);
+        pieceBitboards[pIndex] ^= toMask;
+        pieceBitboards[pIndex] |= fromMask;
+    }
+
+    if (u.wasCapture) {
+        uint64_t capMask = 1ULL << u.capturedSq;
+        pieceBitboards[idx(u.capturedPiece, them)] |= capMask;
+    }
+
+    update();
+}
 
 void Board::printBoard() {
     for (int rank = 7; rank >= 0; --rank) {

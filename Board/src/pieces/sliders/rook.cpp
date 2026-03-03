@@ -28,16 +28,12 @@ void RookMoveGen::generateWhite(Board &board,
             candidate.to    = toSq;
 
             candidate.isCapture = (enemies & (1ULL << toSq)) != 0;
-            if (candidate.isCapture) {
-                uint64_t toMask = 1ULL << toSq;
-
-                for (int i = 6; i < 12; ++i) {
-                    if (board.pieceBitboards[i] & toMask) {
-                        candidate.capturedPiece = static_cast<PieceType>(i - 6);
-                        break;
+                if (candidate.isCapture) {
+                    PieceType cap;
+                    if (board.pieceTypeAtSquare(board.BLACK, toSq, cap)) {
+                        candidate.capturedPiece = cap;
                     }
                 }
-            }
             candidate.piece = ROOK;
             moves.push_back(candidate);
         }
@@ -80,16 +76,12 @@ void RookMoveGen::generateBlack(Board &board,
             candidate.to    = toSq;
 
             candidate.isCapture = (enemies & (1ULL << toSq)) != 0;
-            if (candidate.isCapture) {
-                uint64_t toMask = 1ULL << toSq;
-
-                for (int i = 0; i < 7; ++i) {
-                    if (board.pieceBitboards[i] & toMask) {
-                        candidate.capturedPiece = static_cast<PieceType>(i);
-                        break;
+                if (candidate.isCapture) {
+                    PieceType cap;
+                    if (board.pieceTypeAtSquare(board.WHITE, toSq, cap)) {
+                        candidate.capturedPiece = cap;
                     }
                 }
-            }
             candidate.piece = ROOK;
             moves.push_back(candidate);
         }

@@ -19,13 +19,9 @@ void KnightMoveGen::generateWhite(Board& board,
 
                 candidate.isCapture = (enemies & (1ULL << to)) != 0;
                 if (candidate.isCapture) {
-                    uint64_t toMask = 1ULL << to;
-
-                    for (int i = 6; i < 12; ++i) {
-                        if (board.pieceBitboards[i] & toMask) {
-                            candidate.capturedPiece = static_cast<PieceType>(i - 6);
-                            break;
-                        }
+                    PieceType cap;
+                    if (board.pieceTypeAtSquare(board.BLACK, to, cap)) {
+                        candidate.capturedPiece = cap;
                     }
                 }
                 candidate.piece = KNIGHT;
@@ -53,13 +49,9 @@ void KnightMoveGen::generateBlack(Board& board,
 
                 candidate.isCapture = (enemies & (1ULL << to)) != 0;
                 if (candidate.isCapture) {
-                    uint64_t toMask = 1ULL << to;
-
-                    for (int i = 0; i < 7; ++i) {
-                        if (board.pieceBitboards[i] & toMask) {
-                            candidate.capturedPiece = static_cast<PieceType>(i);
-                            break;
-                        }
+                    PieceType cap;
+                    if (board.pieceTypeAtSquare(board.WHITE, to, cap)) {
+                        candidate.capturedPiece = cap;
                     }
                 }
                 candidate.piece = KNIGHT;

@@ -7,17 +7,17 @@
         * [x] castling rights
         * [x] en-passant target square
         * [ ] halfmove clock / fullmove number
-        * [ ] FEN export matches internal state
+        * [x] FEN export matches internal state
     * [ ] Make/Unmake move
         * [x] Maintain piece bitboards correctly on capture
         * [x] Maintain universal occupancy / side occupancy
         * [x] Toggle side-to-move
         * [x] Track captured piece type for unmake
         * [ ] Restore previous castling rights on unmake
-        * [ ] Restore previous en-passant square on unmake
-        * [ ] Handle promotions in make/unmake
+        * [x] Restore previous en-passant square on unmake
+        * [x] Handle promotions in make/unmake
         * [ ] Handle rook move during castling in make/unmake
-        * [ ] Handle en-passant capture removal in make/unmake
+        * [x] Handle en-passant capture removal in make/unmake
         * [ ] Increment/decrement halfmove clock + fullmove (optional)
 
 * [ ] Piece move generation
@@ -36,17 +36,17 @@
             * [x] if enemy piece exists
         * [x] Single pushes
             * [x] Blocked forward square prevents move
-        * [ ] Promotions
+        * [x] Promotions
             * [x] Quiet promotions (push into last rank)
             * [x] Capture promotions (capture into last rank)
             * [x] Generate N/B/R/Q promotion options
-            * [ ] Make/unmake promotion piece changes
-        * [ ] En passant
-            * [ ] Generate EP capture only if EP square set
-            * [ ] EP capture only if correct pawn is adjacent
-            * [ ] Make: remove the captured pawn from behind EP square
-            * [ ] Unmake: restore captured pawn correctly
-            * [ ] EP capture legality: cannot expose own king to check (later)
+            * [x] Make/unmake promotion piece changes
+        * [x] En passant
+            * [x] Generate EP capture only if EP square set
+            * [x] EP capture only if correct pawn is adjacent
+            * [x] Make: remove the captured pawn from behind EP square
+            * [x] Unmake: restore captured pawn correctly
+            * [x] EP capture legality: cannot expose own king to check (later)
     * [ ] Castling
         * [ ] Track castling rights
             * [ ] King move clears both rights for that side

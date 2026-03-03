@@ -22,7 +22,17 @@ void PawnMoveGen::generateWhite(Board& board,
             candidate.from  = sq;
             candidate.to    = toSq; 
             
+            if (toSq == sq + 16) {
+                candidate.isDoublePush = true;
+            }
+
             candidate.isCapture = (enemies & (1ULL << toSq)) != 0;
+            if (candidate.isCapture) {
+                PieceType cap;
+                if (board.pieceTypeAtSquare(board.BLACK, toSq, cap)) {
+                    candidate.capturedPiece = cap;
+                }
+            }
             candidate.piece     = PAWN;
             // gotta be a better way
             if (rankOf(toSq) == RANK_8) {
@@ -61,15 +71,15 @@ void PawnMoveGen::generateBlack(Board& board,
             candidate.from  = sq;
             candidate.to    = toSq;
             
+            if (toSq == sq - 16){
+                candidate.isDoublePush = true;
+            }
+
             candidate.isCapture = (enemies & (1ULL << toSq)) != 0;
             if (candidate.isCapture) {
-                uint64_t toMask = 1ULL << toSq;
-
-                for (int i = 0; i < 7; ++i) {
-                    if (board.pieceBitboards[i] & toMask) {
-                        candidate.capturedPiece = static_cast<PieceType>(i);
-                        break;
-                    }
+                PieceType cap;
+                if (board.pieceTypeAtSquare(board.WHITE, toSq, cap)) {
+                    candidate.capturedPiece = cap;
                 }
             }
             candidate.piece     = PAWN;
@@ -106,10 +116,9 @@ uint64_t PawnMoveGen::movePawn(Board& board, int sq, bool color) {
         moves |= first;
 
         //double move
-        if (rank == 2 && first) {
+        if (rank == 1 && first) {
             uint64_t second = north(first) & empty;
             moves |= second;
-            board.enPassantSq = first;
         }
 
         //capture
@@ -123,10 +132,9 @@ uint64_t PawnMoveGen::movePawn(Board& board, int sq, bool color) {
         uint64_t first = south(bb) & empty;
         moves |= first;
 
-        if (rank == 7 && first) {
+        if (rank == 6 && first) {
             uint64_t second = south(first) & empty;
             moves |= second;
-            board.enPassantSq = first;
         }
 
         uint64_t leftCapture    = sw(bb);

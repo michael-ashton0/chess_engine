@@ -10,6 +10,21 @@ struct Board {
     enum Side {
         WHITE, BLACK
     };
+    
+    struct Undo {
+        uint64_t prevEnPassantSq = 0ULL;
+
+        bool wasCapture         = false;
+        int capturedSq          = -1;
+        PieceType capturedPiece = PAWN;
+
+        bool wasPromotion           = false;
+        PieceType promotionPiece    = QUEEN;
+
+        Side prevSide = WHITE;
+    };
+
+    std::vector<Undo> history;
 
     std::array<uint64_t, 12> pieceBitboards{};
 
@@ -45,13 +60,15 @@ struct Board {
     void update();
     void place(Piece p, int file, int rank);
     bool isAttacked(uint64_t sq, Side side);
+    bool pieceTypeAtSquare(Side s, int sq, PieceType& out) const;
     void removeEnemyPieceAt(uint64_t sq, Side enemy);
     void setup();
-    void makeMove(Move move);
+    void makeMove(const Move& move);
+    void unmakeMove(const Move& move);
     void printBoard();
     void importFen(std::string fen);
     std::string exportFen();
-    
+
     uint64_t occWhite()         const { return white; }
     uint64_t occBlack()         const { return black; }
     uint64_t occupied()         const { return universal; }

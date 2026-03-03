@@ -27,13 +27,9 @@ void BishopMoveGen::generateWhite(Board &board,
                 
                 candidate.isCapture = (enemies & (1ULL << toSq)) != 0;
                 if (candidate.isCapture) {
-                    uint64_t toMask = 1ULL << toSq;
-
-                    for (int i = 6; i < 12; ++i) {
-                        if (board.pieceBitboards[i] & toMask) {
-                            candidate.capturedPiece = static_cast<PieceType>(i - 6);
-                            break;
-                        }
+                    PieceType cap;
+                    if (board.pieceTypeAtSquare(board.BLACK, toSq, cap)) {
+                        candidate.capturedPiece = cap;
                     }
                 }
                 candidate.piece = BISHOP;
@@ -67,13 +63,9 @@ void BishopMoveGen::generateBlack(Board &board,
 
                 candidate.isCapture = (enemies & (1ULL << toSq)) != 0;
                 if (candidate.isCapture) {
-                    uint64_t toMask = 1ULL << toSq;
-
-                    for (int i = 0; i < 7; ++i) {
-                        if (board.pieceBitboards[i] & toMask) {
-                            candidate.capturedPiece = static_cast<PieceType>(i);
-                            break;
-                        }
+                    PieceType cap;
+                    if (board.pieceTypeAtSquare(board.WHITE, toSq, cap)) {
+                        candidate.capturedPiece = cap;
                     }
                 }
                 candidate.piece = BISHOP;
