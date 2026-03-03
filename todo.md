@@ -1,4 +1,4 @@
-# Progress as of 1/26 #
+# Progress as of 3/2 #
 
 * [ ] Board representation
     * [x] FEN compatibility
