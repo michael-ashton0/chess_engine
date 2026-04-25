@@ -1,9 +1,5 @@
-#include "rook.h"
-#include "bishop.h"
-#include "queen.h"
-#include "knight.h"
-#include "king.h"
-#include "pawn.h"
+#include "inclusions.h"
+#include "pieces.h"
 
 void generateMoves(Board& board) {
     std::vector<Move> moves;

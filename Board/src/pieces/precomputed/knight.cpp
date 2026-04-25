@@ -1,6 +1,5 @@
 #include "knight.h"
 
-
 void KnightMoveGen::generateWhite(Board& board,
     std::vector<Move>& moves) {
         uint64_t knights = board.knightsWhite();

@@ -35,7 +35,7 @@ void PawnMoveGen::generateWhite(Board& board,
             }
             candidate.piece     = PAWN;
             // gotta be a better way
-            if (rankOf(toSq) == RANK_8) {
+            if (rankOf(toSq) == 7) {
                 candidate.isPromotion = true;
                 candidate.promotionPiece = KNIGHT;
                 moves.push_back(candidate);
@@ -83,7 +83,7 @@ void PawnMoveGen::generateBlack(Board& board,
                 }
             }
             candidate.piece     = PAWN;
-            if (rankOf(toSq) == RANK_1) {
+            if (rankOf(toSq) == 0) {
                 candidate.isPromotion = true;
                 candidate.promotionPiece = KNIGHT;
                 moves.push_back(candidate);

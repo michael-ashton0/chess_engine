@@ -31,10 +31,6 @@ inline uint64_t nw(uint64_t bb) { return (bb & ~FILE_A) << 7; }
 inline uint64_t se(uint64_t bb) { return (bb & ~FILE_H) >> 7; }
 inline uint64_t sw(uint64_t bb) { return (bb & ~FILE_A) >> 9; }
 
-// Get info
-inline int fileOf(int sq) { return sq & 7; }
-inline int rankOf(int sq) { return sq >> 3; }
-
 // pops and clears lsb of a board
 // Avoid iterating all bits, check only where a piece is
 inline int pop_lsb(uint64_t &bb) {
@@ -55,3 +51,25 @@ inline void printBitboard(uint64_t bb) {
     }
     std::cout << "\n";
 }
+
+enum Square {
+    A1, B1, C1, D1, E1, F1, G1, H1,
+    A2, B2, C2, D2, E2, F2, G2, H2,
+    A3, B3, C3, D3, E3, F3, G3, H3,
+    A4, B4, C4, D4, E4, F4, G4, H4,
+    A5, B5, C5, D5, E5, F5, G5, H5,
+    A6, B6, C6, D6, E6, F6, G6, H6,
+    A7, B7, C7, D7, E7, F7, G7, H7,
+    A8, B8, C8, D8, E8, F8, G8, H8
+};
+
+inline uint64_t BB(int sq) {
+    return 1ULL << sq;
+}
+
+inline uint64_t BB(Square sq) {
+    return 1ULL << static_cast<int>(sq);
+}
+
+inline int fileOf(int sq) { return sq & 7; }
+inline int rankOf(int sq) { return sq >> 3; }

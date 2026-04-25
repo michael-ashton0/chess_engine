@@ -1,5 +1,5 @@
 #include "rook.h"
-
+#include "bitboard.h"
 // base slider logic
 
 void RookMoveGen::generateWhite(Board &board,
@@ -99,13 +99,14 @@ uint64_t RookMoveGen::nonMagicRookAttacks(int sq, uint64_t occupied)
     uint64_t ray = bb;
     while (true) {
         // step in direction until blocked or off board
-        ray = north(ray);   
+        ray = north(ray);
         if (ray == 0) break;
         attacks |= ray;              
         if (occupied & ray) break;
     }
 
     // south
+    ray = bb;
     while(true) {
         ray = south(ray);
         if (ray == 0) break;
@@ -114,6 +115,7 @@ uint64_t RookMoveGen::nonMagicRookAttacks(int sq, uint64_t occupied)
     }
 
     // east
+    ray = bb;
     while(true) {
         ray = east(ray);
         if (ray == 0) break;
@@ -122,6 +124,7 @@ uint64_t RookMoveGen::nonMagicRookAttacks(int sq, uint64_t occupied)
     }
 
     // west
+    ray = bb;
     while(true) {
         ray = west(ray);
         if (ray == 0) break;

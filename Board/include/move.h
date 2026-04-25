@@ -1,5 +1,8 @@
 #pragma once
 #include "inclusions.h"
+#include "board.h"
+
+//void generateMoves(Board& board);
 
 enum PieceType {
     PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING
@@ -21,4 +24,9 @@ struct Move {
     bool isEnPassant    = false;
     bool isPromotion    = false;
     PieceType promotionPiece;
+
+    // King Specific
+    bool isCastle           = false;
+    bool isKingsideCastle   = false;
+    bool isQueensideCastle  = false;
 };

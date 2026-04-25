@@ -1,5 +1,6 @@
 #pragma once
 #include "inclusions.h"
+#include "board.h"
 
 namespace PawnMoveGen {
     void generateWhite(Board& board,

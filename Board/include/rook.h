@@ -1,5 +1,7 @@
 #pragma once
 #include "inclusions.h"
+#include "board.h"
+#include "bitboard.h"
 
 namespace RookMoveGen {
 
@@ -11,7 +13,7 @@ namespace RookMoveGen {
     
     uint64_t nonMagicRookAttacks(int sq, uint64_t occupied);
 
-    const uint64_t RMagic[64] = {
+    static const uint64_t RMagic[64] = {
     0x2080020500400f0ULL,
     0x28444000400010ULL,
     0x20000a1004100014ULL,
@@ -78,7 +80,7 @@ namespace RookMoveGen {
     0x4000882304000041ULL,
     };
 
-    const uint64_t RBlockers[64] {
+    static const uint64_t RBlockers[64] {
     0x101010101017eULL,
     0x202020202027cULL,
     0x404040404047aULL,
@@ -145,7 +147,7 @@ namespace RookMoveGen {
     0x7e80808080808000ULL
     };
 
-    const int RShift[64] {
+    static const int RShift[64] {
     52,
     53,
     53,

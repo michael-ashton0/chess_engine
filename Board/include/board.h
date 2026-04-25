@@ -1,5 +1,6 @@
 #pragma once
 #include "inclusions.h"
+#include "move.h"
 
 struct Board {
     enum Piece {
@@ -16,12 +17,17 @@ struct Board {
 
         bool wasCapture         = false;
         int capturedSq          = -1;
-        PieceType capturedPiece = PAWN;
+        PieceType capturedPiece;
 
         bool wasPromotion           = false;
-        PieceType promotionPiece    = QUEEN;
+        PieceType promotionPiece;
 
         Side prevSide = WHITE;
+
+        bool prevWhiteCastleKingside;
+        bool prevWhiteCastleQueenside;
+        bool prevBlackCastleKingside;
+        bool prevBlackCastleQueenside;
     };
 
     std::vector<Undo> history;
@@ -31,15 +37,15 @@ struct Board {
     bool whKingMoved;
     bool blKingMoved;
    
-    bool whQueenRookMoved;
-    bool whKingRookMoved;
-    bool blQueenRookMoved;
-    bool blKingRookMoved;
+    bool whQueenRookMoved   = false;
+    bool whKingRookMoved    = false;
+    bool blQueenRookMoved   = false;
+    bool blKingRookMoved    = false;
     
-    bool whKingsideCastle;
-    bool whQueensideCastle;
-    bool blKingsideCastle;
-    bool blQueensideCastle;
+    bool whiteCastleKingside  = true;
+    bool whiteCastleQueenside = true;
+    bool blackCastleKingside  = true;
+    bool blackCastleQueenside = true;
     
     uint64_t universal      = 0ULL;
     uint64_t white          = 0ULL;
@@ -59,7 +65,7 @@ struct Board {
     void clear();
     void update();
     void place(Piece p, int file, int rank);
-    bool isAttacked(uint64_t sq, Side side);
+    bool isAttacked(int sq, Side attacker) const;
     bool pieceTypeAtSquare(Side s, int sq, PieceType& out) const;
     void removeEnemyPieceAt(uint64_t sq, Side enemy);
     void setup();
@@ -68,6 +74,11 @@ struct Board {
     void printBoard();
     void importFen(std::string fen);
     std::string exportFen();
+
+    bool canWhiteCastleKingside();
+    bool canWhiteCastleQueenside();
+    bool canBlackCastleKingside();
+    bool canBlackCastleQueenside();
 
     uint64_t occWhite()         const { return white; }
     uint64_t occBlack()         const { return black; }

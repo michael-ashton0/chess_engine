@@ -1,11 +1,13 @@
 #include <iostream>
-#include "../../include/board.h"
+#include "board.h"
+#include "bitboard.h"
+#include "pieces.h"
 
 // TODO::
 //  Is it a good idea to add rank checkers? 
-//      ie return a bitboard that represents each of the pieces in rank 5 or col 2
+//      ie return a bitboard that represents each of the pieces in rank 5 or col 2 [done]
 //  Overall give more information available on board obj
-//  Check checker for legality and castling concerns
+//  Check checker for legality and castling concerns [done]
 
 void Board::clear(){
         lastPerm = 0;
@@ -36,7 +38,7 @@ void Board::place(Piece p, int file, int rank) {
         pieceBitboards[p] |= (1ULL << sq);
     };
 
-inline bool Board::pieceTypeAtSquare(Side s, int sq, PieceType& out) const {
+bool Board::pieceTypeAtSquare(Side s, int sq, PieceType& out) const {
     uint64_t mask = 1ULL << sq;
     int offset = (s == WHITE) ? 0 : 6;
 
@@ -49,8 +51,59 @@ inline bool Board::pieceTypeAtSquare(Side s, int sq, PieceType& out) const {
     return false;
 }
 
-bool Board::isAttacked(uint64_t sq, Side side) {
-    // could be obsolete in favor of adding this inside the move
+bool Board::isAttacked(int sq, Side attacker) const {
+    uint64_t target = 1ULL << sq;
+    uint64_t occupied = universal;
+
+    // case Pawn
+    if (attacker == WHITE) {
+        uint64_t whitePawnAttacks =
+            ne(pieceBitboards[pawn_w]) | nw(pieceBitboards[pawn_w]);
+        if (whitePawnAttacks & target) return true;
+    } else {
+        uint64_t blackPawnAttacks =
+            se(pieceBitboards[pawn_b]) | sw(pieceBitboards[pawn_b]);
+        if (blackPawnAttacks & target) return true;
+    }
+
+    // case Knight
+    uint64_t knights = (attacker == WHITE) ? pieceBitboards[knight_w]
+                                           : pieceBitboards[knight_b];
+    while (knights) {
+        int from = pop_lsb(knights);
+        if (KnightMoveGen::knightMoves[from] & target) return true;
+    }
+
+    // case King
+    uint64_t king = (attacker == WHITE) ? pieceBitboards[king_w]
+                                        : pieceBitboards[king_b];
+    if (king) {
+        int from = pop_lsb(king);
+        if (KingMoveGen::kingMoves[from] & target) return true;
+    }
+
+    // case horizontal slider
+    uint64_t rookers = (attacker == WHITE)
+        ? (pieceBitboards[rook_w] | pieceBitboards[queen_w])
+        : (pieceBitboards[rook_b] | pieceBitboards[queen_b]);
+
+    uint64_t tmp = rookers;
+    while (tmp) {
+        int from = pop_lsb(tmp);
+        if (RookMoveGen::nonMagicRookAttacks(from, occupied) & target) return true;
+    }
+
+    // case diagonal slider
+    uint64_t bishops = (attacker == WHITE)
+        ? (pieceBitboards[bishop_w] | pieceBitboards[queen_w])
+        : (pieceBitboards[bishop_b] | pieceBitboards[queen_b]);
+
+    tmp = bishops;
+    while (tmp) {
+        int from = pop_lsb(tmp);
+        if (BishopMoveGen::nonMagicBishopAttacks(from, occupied) & target) return true;
+    }
+
     return false;
 }
 
@@ -130,6 +183,11 @@ void Board::makeMove(const Move& move) {
     auto idx = [&](PieceType p, Side s) -> int {
         return (s == WHITE) ? (int)p : (int)p + 6;
     };
+    
+    undo.prevWhiteCastleKingside    = whiteCastleKingside;
+    undo.prevWhiteCastleQueenside   = whiteCastleQueenside;
+    undo.prevBlackCastleKingside    = blackCastleKingside;
+    undo.prevBlackCastleQueenside   = blackCastleQueenside;
 
     if (move.isCapture) {
         undo.wasCapture = true;
@@ -165,6 +223,36 @@ void Board::makeMove(const Move& move) {
     if (move.piece == PAWN && move.isDoublePush) {
         int epSq = (us == WHITE) ? (move.from + 8) : (move.from - 8);
         enPassantSq = 1ULL << epSq;
+    }
+
+    if (move.piece == KING) {
+        if (us == WHITE) {
+            whiteCastleKingside = false;
+            whiteCastleQueenside = false;
+        } else {
+            blackCastleKingside = false;
+            blackCastleQueenside = false;
+        }
+    }
+
+    if (move.piece == ROOK) {
+        if (us == WHITE) {
+            if (move.from == A1) whiteCastleQueenside = false;
+            if (move.from == H1) whiteCastleKingside = false;
+        } else {
+            if (move.from == A8) blackCastleQueenside = false;
+            if (move.from == H8) blackCastleKingside = false;
+        }
+    }
+
+    if (move.isCapture && move.capturedPiece == ROOK) {
+        if (them == WHITE) {
+            if (move.to == A1) whiteCastleQueenside = false;
+            if (move.to == H1) whiteCastleKingside = false;
+        } else {
+            if (move.to == A8) blackCastleQueenside = false;
+            if (move.to == H8) blackCastleKingside = false;
+        }
     }
 
     history.push_back(undo);
@@ -283,3 +371,25 @@ std::string Board::exportFen() {
     fen += " w - - 0 1";
     return fen;
 };
+
+bool Board::canWhiteCastleKingside() {
+    return whiteCastleKingside
+        && (pieceBitboards[king_w] & (1ULL << E1))
+        && (pieceBitboards[rook_w] & (1ULL << H1));
+}
+bool Board::canWhiteCastleQueenside() {
+    return whiteCastleQueenside
+        && (pieceBitboards[king_w] & (1ULL << E1))
+        && (pieceBitboards[rook_w] & (1ULL << A1));
+}
+
+bool Board::canBlackCastleKingside() {
+    return blackCastleKingside
+        && (pieceBitboards[king_b] & (1ULL << E8))
+        && (pieceBitboards[rook_b] & (1ULL << H8));
+}
+bool Board::canBlackCastleQueenside() {
+    return blackCastleQueenside
+        && (pieceBitboards[king_b] & (1ULL << E8))
+        && (pieceBitboards[rook_b] & (1ULL << A8));
+}

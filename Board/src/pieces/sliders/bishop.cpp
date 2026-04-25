@@ -92,6 +92,7 @@ uint64_t BishopMoveGen::nonMagicBishopAttacks(int sq, uint64_t occupied)
     }
 
     // northwest
+    ray = bb;
     while(true) {
         ray = nw(ray);
         if (ray == 0) break;
@@ -100,6 +101,7 @@ uint64_t BishopMoveGen::nonMagicBishopAttacks(int sq, uint64_t occupied)
     }
 
     // southeast
+    ray = bb;
     while(true) {
         ray = se(ray);
         if (ray == 0) break;
@@ -108,6 +110,7 @@ uint64_t BishopMoveGen::nonMagicBishopAttacks(int sq, uint64_t occupied)
     }
 
     // southwest
+    ray = bb;
     while(true) {
         ray = sw(ray);
         if (ray == 0) break;

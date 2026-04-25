@@ -89,7 +89,7 @@ uint64_t QueenMoveGen::nonMagicQueenAttacks(int sq, uint64_t occupied) {
         if (occupied & ray) break;
     }
 
-    uint64_t ray = bb;
+    ray = bb;
     while (true) {
         ray = south(ray);   
         if (ray == 0) break;
@@ -97,7 +97,7 @@ uint64_t QueenMoveGen::nonMagicQueenAttacks(int sq, uint64_t occupied) {
         if (occupied & ray) break;
     }
 
-    uint64_t ray = bb;
+    ray = bb;
     while (true) {
         ray = east(ray);   
         if (ray == 0) break;
@@ -105,7 +105,7 @@ uint64_t QueenMoveGen::nonMagicQueenAttacks(int sq, uint64_t occupied) {
         if (occupied & ray) break;
     }
 
-    uint64_t ray = bb;
+    ray = bb;
     while (true) {
         ray = west(ray);   
         if (ray == 0) break;
@@ -114,28 +114,30 @@ uint64_t QueenMoveGen::nonMagicQueenAttacks(int sq, uint64_t occupied) {
     }
 
     // bishop moves
-    uint64_t ray = bb;
+    ray = bb;
     while (true) {
         ray = ne(ray);   
         if (ray == 0) break;
         attacks |= ray;              
         if (occupied & ray) break;
     }
-
+    
+    ray = bb;
     while(true) {
         ray = nw(ray);
         if (ray == 0) break;
         attacks |= ray;
         if (occupied & ray) break;
     }
-
+    
+    ray = bb;
     while(true) {
         ray = se(ray);
         if (ray == 0) break;
         attacks |= ray;
         if (occupied & ray) break;
     }
-
+    ray = bb;
     while(true) {
         ray = sw(ray);
         if (ray == 0) break;

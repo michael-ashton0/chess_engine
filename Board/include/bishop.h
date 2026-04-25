@@ -1,5 +1,7 @@
 #pragma once
 #include "inclusions.h"
+#include "board.h"
+#include "bitboard.h"
 
 namespace BishopMoveGen {
     
@@ -11,7 +13,7 @@ namespace BishopMoveGen {
     
     uint64_t nonMagicBishopAttacks(int sq, uint64_t occupied);
 
-    const uint64_t BMagic[64] = {
+    static const uint64_t BMagic[64] = {
     0x100420000431024ULL,
     0x280800101073404ULL,
     0x42000a00840802ULL,

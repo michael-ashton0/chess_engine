@@ -1,8 +1,9 @@
 #pragma once
 #include "inclusions.h"
+#include "board.h"
 
 namespace KingMoveGen {
-    uint64_t kingMoves[64];
+   static uint64_t kingMoves[64];
 
     void initKingMoves();
 
@@ -11,4 +12,10 @@ namespace KingMoveGen {
     
     void generateBlack(Board& board, 
                       std::vector<Move>& moves);
+    
+    void generateWhiteCastleMoves(Board& board,
+                                std::vector<Move>& moves);
+    
+    void generateBlackCastleMoves(Board& board,
+                                std::vector<Move>& moves);
 }
