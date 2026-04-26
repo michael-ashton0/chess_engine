@@ -1,8 +1,7 @@
 #pragma once
 #include "inclusions.h"
-#include "board.h"
 
-//void generateMoves(Board& board);
+struct Board;
 
 enum PieceType {
     PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING
@@ -15,7 +14,7 @@ struct Move {
     uint8_t to;     //0-63
     bool isCapture = false;
     PieceType capturedPiece;
-
+    
     // Pawn Specific
     // might get scrapped if i can't figure out 
     // passing values to a Move object from movePawn
@@ -24,9 +23,15 @@ struct Move {
     bool isEnPassant    = false;
     bool isPromotion    = false;
     PieceType promotionPiece;
-
+    
     // King Specific
     bool isCastle           = false;
     bool isKingsideCastle   = false;
     bool isQueensideCastle  = false;
 };
+
+void generateMoves(Board& board, std::vector<Move>& moves);
+
+std::string squareName(int sq);
+
+std::string moveName(const Move& m);

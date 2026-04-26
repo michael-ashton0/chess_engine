@@ -60,33 +60,26 @@ void KnightMoveGen::generateBlack(Board& board,
     }
 
 void KnightMoveGen::initKnightMoves() {
-
-    
-    for (int sq; sq < 64; sq++) {
+    for (int sq = 0; sq < 64; sq++) {
         uint64_t bb = 1ULL << sq;
-
         uint64_t moves = 0ULL;
-        
-        // 2 left, up/down 1
-        if (!(sq & LEFT2)) {
+
+        if (!(bb & LEFT2)) {
             moves |= bb << 6;
             moves |= bb >> 10;
         }
-        
-        // 2 right, up/down 1
-        if (!(sq & RIGHT2)) {
-            moves |= bb << 10;
-            moves |= bb >> 6;
+
+        if (!(bb & RIGHT2)) {
+            moves |= bb >> 10;
+            moves |= bb << 6;
         }
 
-        // 2 up, right/left 1
-        if (!(sq & TOP2)) {
+        if (!(bb & TOP2)) {
             moves |= bb << 15;
             moves |= bb << 17;
         }
-        
-        //2 down, right/left 1
-        if (!(sq & BOT2)) {
+
+        if (!(bb & BOT2)) {
             moves |= bb >> 17;
             moves |= bb >> 15;
         }

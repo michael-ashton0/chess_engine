@@ -107,6 +107,15 @@ bool Board::isAttacked(int sq, Side attacker) const {
     return false;
 }
 
+int Board::kingSquare(Side s) const
+{
+    uint64_t king = (s == WHITE)
+        ? pieceBitboards[king_w]
+        : pieceBitboards[king_b];
+
+    return __builtin_ctzll(king);
+}
+
 void Board::removeEnemyPieceAt(uint64_t sq, Side enemy) {
     // mask is a bitboard with just that one square set
     // this could be slow? alternative is knowing what kind of piece you are capturing with each move

@@ -152,30 +152,30 @@ void KingMoveGen::initKingMoves() {
         uint64_t moves = 0ULL;
         
         // corner cases
-        if (!(sq & TL_CORNER)) {
+        if (!(bb & TL_CORNER)) {
             moves |= ne(bb);
         }
-        if (!(sq & TR_CORNER)) {
+        if (!(bb & TR_CORNER)) {
             moves |= nw(bb);
         }
-        if (!(sq & BL_CORNER)) {
+        if (!(bb & BL_CORNER)) {
             moves |= se(bb);
         }
-        if (!(sq & BR_CORNER)) {
+        if (!(bb & BR_CORNER)) {
             moves |= sw(bb);
         }
 
         //edge cases
-        if (!(sq & FILE_A)) {
+        if (!(bb & FILE_A)) {
             moves |= east(bb);
         }
-        if (!(sq & FILE_H)) {
+        if (!(bb & FILE_H)) {
             moves |= west(bb);
         }
-        if (!(sq & RANK_1)) {
+        if (!(bb & RANK_1)) {
             moves |= south(bb);
         }
-        if (!(sq & RANK_8)) {
+        if (!(bb & RANK_8)) {
             moves |= north(bb);
         }
         kingMoves[sq] = moves;
