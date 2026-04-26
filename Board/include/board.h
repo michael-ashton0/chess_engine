@@ -67,7 +67,7 @@ struct Board {
     void place(Piece p, int file, int rank);
     bool isAttacked(int sq, Side attacker) const;
     bool pieceTypeAtSquare(Side s, int sq, PieceType& out) const;
-    void removeEnemyPieceAt(uint64_t sq, Side enemy);
+    void removeEnemyPieceAt(int sq, Side enemy);
     int kingSquare(Side s) const;
     void setup();
     void makeMove(const Move& move);

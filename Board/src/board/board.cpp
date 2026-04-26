@@ -116,11 +116,11 @@ int Board::kingSquare(Side s) const
     return __builtin_ctzll(king);
 }
 
-void Board::removeEnemyPieceAt(uint64_t sq, Side enemy) {
+void Board::removeEnemyPieceAt(int sq, Side enemy) {
     // mask is a bitboard with just that one square set
     // this could be slow? alternative is knowing what kind of piece you are capturing with each move
     // which honestly could be better on the evaluation side? need to look at this when im not so sleepy
-    uint64_t mask = sq;
+    uint64_t mask = 1ULL << sq;
 
     if (enemy == WHITE) {
         if (pieceBitboards[pawn_w]   & mask) { pieceBitboards[pawn_w]   ^= mask; return; }
@@ -264,6 +264,26 @@ void Board::makeMove(const Move& move) {
         }
     }
 
+    if (move.isCastle) {
+        if (us == WHITE) {
+            if (move.isKingsideCastle) {
+                pieceBitboards[rook_w] ^= (1ULL << H1);
+                pieceBitboards[rook_w] |= (1ULL << F1);
+            } else {
+                pieceBitboards[rook_w] ^= (1ULL << A1);
+                pieceBitboards[rook_w] |= (1ULL << D1);
+            }
+        } else {
+            if (move.isKingsideCastle) {
+                pieceBitboards[rook_b] ^= (1ULL << H8);
+                pieceBitboards[rook_b] |= (1ULL << F8);
+            } else {
+                pieceBitboards[rook_b] ^= (1ULL << A8);
+                pieceBitboards[rook_b] |= (1ULL << D8);
+            }
+        }
+    }
+
     history.push_back(undo);
 
     side = them;
@@ -300,6 +320,35 @@ void Board::unmakeMove(const Move& move) {
         uint64_t capMask = 1ULL << u.capturedSq;
         pieceBitboards[idx(u.capturedPiece, them)] |= capMask;
     }
+
+    if (move.isCastle) {
+        if (us == WHITE) {
+            if (move.isKingsideCastle) {
+                // rook F1 -> H1
+                pieceBitboards[rook_w] ^= (1ULL << F1);
+                pieceBitboards[rook_w] |= (1ULL << H1);
+            } else {
+                // rook D1 -> A1
+                pieceBitboards[rook_w] ^= (1ULL << D1);
+                pieceBitboards[rook_w] |= (1ULL << A1);
+            }
+        } else {
+            if (move.isKingsideCastle) {
+                // rook F8 -> H8
+                pieceBitboards[rook_b] ^= (1ULL << F8);
+                pieceBitboards[rook_b] |= (1ULL << H8);
+            } else {
+                // rook D8 -> A8
+                pieceBitboards[rook_b] ^= (1ULL << D8);
+                pieceBitboards[rook_b] |= (1ULL << A8);
+            }
+        }
+    }
+
+    whiteCastleKingside  = u.prevWhiteCastleKingside;
+    whiteCastleQueenside = u.prevWhiteCastleQueenside;
+    blackCastleKingside  = u.prevBlackCastleKingside;
+    blackCastleQueenside = u.prevBlackCastleQueenside;
 
     update();
 }

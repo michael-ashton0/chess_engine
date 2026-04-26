@@ -1,14 +1,17 @@
 #include "king.h"
 
 // corner cases
-uint64_t TL_CORNER = FILE_A | RANK_8;
-uint64_t TR_CORNER = FILE_H | RANK_8;
-uint64_t BL_CORNER = FILE_A | RANK_1;
-uint64_t BR_CORNER = FILE_H | RANK_8;
+uint64_t TL_CORNER = FILE_A & RANK_8;
+uint64_t TR_CORNER = FILE_H & RANK_8;
+uint64_t BL_CORNER = FILE_A & RANK_1;
+uint64_t BR_CORNER = FILE_H & RANK_1;
+
+uint64_t KingMoveGen::kingMoves[64] = {};
 
 void KingMoveGen::generateWhite(Board& board, std::vector<Move>& moves) {
     uint64_t kings   = board.kingWhite();
     uint64_t enemies = board.occBlack();
+
 
     while (kings) {
         int sq = pop_lsb(kings);
@@ -146,38 +149,20 @@ void KingMoveGen::generateBlackCastleMoves(Board& board,
 }
 
 void KingMoveGen::initKingMoves() {
-    for (int sq = 0; sq <64; sq++) {
+    for (int sq = 0; sq < 64; sq++) {
         uint64_t bb = 1ULL << sq;
-
         uint64_t moves = 0ULL;
-        
-        // corner cases
-        if (!(bb & TL_CORNER)) {
-            moves |= ne(bb);
-        }
-        if (!(bb & TR_CORNER)) {
-            moves |= nw(bb);
-        }
-        if (!(bb & BL_CORNER)) {
-            moves |= se(bb);
-        }
-        if (!(bb & BR_CORNER)) {
-            moves |= sw(bb);
-        }
 
-        //edge cases
-        if (!(bb & FILE_A)) {
-            moves |= east(bb);
-        }
-        if (!(bb & FILE_H)) {
-            moves |= west(bb);
-        }
-        if (!(bb & RANK_1)) {
-            moves |= south(bb);
-        }
-        if (!(bb & RANK_8)) {
-            moves |= north(bb);
-        }
+        if (!(bb & FILE_H)) moves |= east(bb);
+        if (!(bb & FILE_A)) moves |= west(bb);
+        if (!(bb & RANK_8)) moves |= north(bb);
+        if (!(bb & RANK_1)) moves |= south(bb);
+
+        if (!(bb & (FILE_H | RANK_8))) moves |= ne(bb);
+        if (!(bb & (FILE_A | RANK_8))) moves |= nw(bb);
+        if (!(bb & (FILE_H | RANK_1))) moves |= se(bb);
+        if (!(bb & (FILE_A | RANK_1))) moves |= sw(bb);
+
         kingMoves[sq] = moves;
     }
 }

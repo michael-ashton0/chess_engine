@@ -3,7 +3,7 @@
 #include "board.h"
 
 namespace KingMoveGen {
-   static uint64_t kingMoves[64];
+   extern uint64_t kingMoves[64];
 
     void initKingMoves();
 

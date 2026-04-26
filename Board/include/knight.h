@@ -11,7 +11,7 @@ static constexpr uint64_t BOT2   = RANK_1 | RANK_2;
 // +17, +15, +10, +6
 // -17, -15, -10, -6
 namespace KnightMoveGen {
-    static uint64_t knightMoves[64];
+    extern uint64_t knightMoves[64];
 
     void initKnightMoves();
 

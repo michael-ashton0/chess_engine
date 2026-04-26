@@ -1,5 +1,7 @@
 #include "knight.h"
 
+uint64_t KnightMoveGen::knightMoves[64] = {};
+
 void KnightMoveGen::generateWhite(Board& board,
     std::vector<Move>& moves) {
         uint64_t knights = board.knightsWhite();
@@ -64,25 +66,17 @@ void KnightMoveGen::initKnightMoves() {
         uint64_t bb = 1ULL << sq;
         uint64_t moves = 0ULL;
 
-        if (!(bb & LEFT2)) {
-            moves |= bb << 6;
-            moves |= bb >> 10;
-        }
+        if (!(bb & (FILE_A | FILE_B | RANK_8))) moves |= bb << 6;
+        if (!(bb & (FILE_A | FILE_B | RANK_1))) moves |= bb >> 10;
 
-        if (!(bb & RIGHT2)) {
-            moves |= bb >> 10;
-            moves |= bb << 6;
-        }
+        if (!(bb & (FILE_G | FILE_H | RANK_8))) moves |= bb << 10;
+        if (!(bb & (FILE_G | FILE_H | RANK_1))) moves |= bb >> 6;
 
-        if (!(bb & TOP2)) {
-            moves |= bb << 15;
-            moves |= bb << 17;
-        }
+        if (!(bb & (FILE_A | RANK_7 | RANK_8))) moves |= bb << 15;
+        if (!(bb & (FILE_H | RANK_7 | RANK_8))) moves |= bb << 17;
 
-        if (!(bb & BOT2)) {
-            moves |= bb >> 17;
-            moves |= bb >> 15;
-        }
+        if (!(bb & (FILE_A | RANK_1 | RANK_2))) moves |= bb >> 17;
+        if (!(bb & (FILE_H | RANK_1 | RANK_2))) moves |= bb >> 15;
 
         knightMoves[sq] = moves;
     }

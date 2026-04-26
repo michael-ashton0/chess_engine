@@ -18,15 +18,20 @@ void PawnMoveGen::generateWhite(Board& board,
 
         while (candidates) {
             int toSq = pop_lsb(candidates);
+            uint64_t toMask = 1ULL << toSq;
+
             Move candidate;
             candidate.from  = sq;
             candidate.to    = toSq; 
             
-            if (toSq == sq + 16) {
-                candidate.isDoublePush = true;
+            candidate.isDoublePush = (toSq == sq + 16);
+            candidate.isEnPassant = (toMask & board.enPassantSq) != 0;
+            candidate.isCapture = (enemies & (1ULL << toSq)) != 0 || candidate.isEnPassant;
+
+            if (candidate.isEnPassant) {
+                candidate.capturedPiece = PAWN;
             }
 
-            candidate.isCapture = (enemies & (1ULL << toSq)) != 0;
             if (candidate.isCapture) {
                 PieceType cap;
                 if (board.pieceTypeAtSquare(board.BLACK, toSq, cap)) {
@@ -66,16 +71,19 @@ void PawnMoveGen::generateBlack(Board& board,
 
         while (candidates) {
             int toSq = pop_lsb(candidates);
-            
+            uint64_t toMask = 1ULL << toSq;
             Move candidate;
             candidate.from  = sq;
             candidate.to    = toSq;
             
-            if (toSq == sq - 16){
-                candidate.isDoublePush = true;
+            candidate.isDoublePush = (toSq == sq - 16);
+            candidate.isEnPassant = (toMask & board.enPassantSq) != 0;
+            candidate.isCapture = (enemies & (1ULL << toSq)) != 0 || candidate.isEnPassant;
+
+            if (candidate.isEnPassant) {
+                candidate.capturedPiece = PAWN;
             }
 
-            candidate.isCapture = (enemies & (1ULL << toSq)) != 0;
             if (candidate.isCapture) {
                 PieceType cap;
                 if (board.pieceTypeAtSquare(board.WHITE, toSq, cap)) {
