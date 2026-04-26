@@ -1,20 +1,31 @@
 #include <iostream>
+#include <sstream>
+#include <cctype>
+
 #include "board.h"
 #include "bitboard.h"
 #include "pieces.h"
 
-// TODO::
-//  Is it a good idea to add rank checkers? 
-//      ie return a bitboard that represents each of the pieces in rank 5 or col 2 [done]
-//  Overall give more information available on board obj
-//  Check checker for legality and castling concerns [done]
+void Board::clear() {
+    lastPerm = 0;
 
-void Board::clear(){
-        lastPerm = 0;
-        for (int i=0; i<12; i++) {
-            pieceBitboards[i] = 0ULL;
-        }
-    };
+    for (int i = 0; i < 12; i++) {
+        pieceBitboards[i] = 0ULL;
+    }
+
+    white = 0ULL;
+    black = 0ULL;
+    universal = 0ULL;
+
+    enPassantSq = 0ULL;
+
+    whiteCastleKingside = false;
+    whiteCastleQueenside = false;
+    blackCastleKingside = false;
+    blackCastleQueenside = false;
+
+    history.clear();
+}
 
 void Board::update(){
     /* 
@@ -173,6 +184,17 @@ void Board::setup(){
     // kings
     place(king_b, 4,7);
     place(king_w, 4,0);
+
+    side = WHITE;
+
+    whiteCastleKingside = true;
+    whiteCastleQueenside = true;
+    blackCastleKingside = true;
+    blackCastleQueenside = true;
+
+    enPassantSq = 0ULL;
+
+    update();
     };
 
 void Board::makeMove(const Move& move) {
@@ -385,7 +407,97 @@ void Board::printBoard() {
 };
 
 void Board::importFen(std::string fen) {
-    return;
+    clear();
+
+    // Reset non-piece board state
+    side = WHITE;
+    enPassantSq = 0ULL;
+
+    whiteCastleKingside = false;
+    whiteCastleQueenside = false;
+    blackCastleKingside = false;
+    blackCastleQueenside = false;
+
+    history.clear();
+
+    std::istringstream iss(fen);
+
+    std::string placement;
+    std::string sideToMove;
+    std::string castling;
+    std::string enPassant;
+    int halfmoveClock = 0;
+    int fullmoveNumber = 1;
+
+    iss >> placement >> sideToMove >> castling >> enPassant >> halfmoveClock >> fullmoveNumber;
+
+    int rank = 7;
+    int file = 0;
+
+    for (char c : placement) {
+        if (c == '/') {
+            rank--;
+            file = 0;
+            continue;
+        }
+
+        if (std::isdigit(static_cast<unsigned char>(c))) {
+            file += c - '0';
+            continue;
+        }
+
+        if (file > 7 || rank < 0) {
+            continue;
+        }
+
+        Piece piece;
+
+        switch (c) {
+            case 'P': piece = pawn_w;   break;
+            case 'N': piece = knight_w; break;
+            case 'B': piece = bishop_w; break;
+            case 'R': piece = rook_w;   break;
+            case 'Q': piece = queen_w;  break;
+            case 'K': piece = king_w;   break;
+
+            case 'p': piece = pawn_b;   break;
+            case 'n': piece = knight_b; break;
+            case 'b': piece = bishop_b; break;
+            case 'r': piece = rook_b;   break;
+            case 'q': piece = queen_b;  break;
+            case 'k': piece = king_b;   break;
+
+            default:
+                file++;
+                continue;
+        }
+
+        place(piece, file, rank);
+        file++;
+    }
+
+    if (sideToMove == "w") {
+        side = WHITE;
+    } else if (sideToMove == "b") {
+        side = BLACK;
+    }
+
+    if (castling.find('K') != std::string::npos) whiteCastleKingside = true;
+    if (castling.find('Q') != std::string::npos) whiteCastleQueenside = true;
+    if (castling.find('k') != std::string::npos) blackCastleKingside = true;
+    if (castling.find('q') != std::string::npos) blackCastleQueenside = true;
+
+    if (enPassant != "-" && enPassant.size() == 2) {
+        int epFile = enPassant[0] - 'a';
+        int epRank = enPassant[1] - '1';
+
+        if (epFile >= 0 && epFile < 8 && epRank >= 0 && epRank < 8) {
+            int epSq = toSquare(epFile, epRank);
+            enPassantSq = 1ULL << epSq;
+        }
+    }
+
+    update();
 }
     // Returns a full FEN string. Assumptions: side to move = white, no castling rights,
     // no en-passant, halfmove clock = 0, fullmove number = 1.
@@ -426,7 +538,41 @@ std::string Board::exportFen() {
         if (rank > 0) fen.push_back('/');
     }
     // Append metadata
-    fen += " w - - 0 1";
+    // side to move
+    fen += (side == WHITE) ? " w " : " b ";
+
+    // castling rights
+    std::string castling;
+
+    if (whiteCastleKingside)  castling += 'K';
+    if (whiteCastleQueenside) castling += 'Q';
+    if (blackCastleKingside)  castling += 'k';
+    if (blackCastleQueenside) castling += 'q';
+
+    if (castling.empty()) {
+        castling = "-";
+    }
+
+    fen += castling;
+    fen += " ";
+
+    // en passant
+    if (enPassantSq) {
+        uint64_t ep = enPassantSq;
+        int sq = pop_lsb(ep);
+
+        char file = 'a' + fileOf(sq);
+        char rank = '1' + rankOf(sq);
+
+        fen += file;
+        fen += rank;
+    } else {
+        fen += "-";
+    }
+
+    // For now, ignore true halfmove/fullmove counters
+    fen += " 0 1";
+
     return fen;
 };
 
