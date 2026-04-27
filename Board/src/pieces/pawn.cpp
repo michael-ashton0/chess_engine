@@ -42,13 +42,13 @@ void PawnMoveGen::generateWhite(Board& board,
             // gotta be a better way
             if (rankOf(toSq) == 7) {
                 candidate.isPromotion = true;
+                candidate.promotionPiece = QUEEN;
+                moves.push_back(candidate);
                 candidate.promotionPiece = KNIGHT;
                 moves.push_back(candidate);
                 candidate.promotionPiece = BISHOP;
                 moves.push_back(candidate);
                 candidate.promotionPiece = ROOK;
-                moves.push_back(candidate);
-                candidate.promotionPiece = QUEEN;
                 moves.push_back(candidate);
             } else {
                 moves.push_back(candidate);
@@ -93,13 +93,13 @@ void PawnMoveGen::generateBlack(Board& board,
             candidate.piece     = PAWN;
             if (rankOf(toSq) == 0) {
                 candidate.isPromotion = true;
+                candidate.promotionPiece = QUEEN;
+                moves.push_back(candidate);
                 candidate.promotionPiece = KNIGHT;
                 moves.push_back(candidate);
                 candidate.promotionPiece = BISHOP;
                 moves.push_back(candidate);
                 candidate.promotionPiece = ROOK;
-                moves.push_back(candidate);
-                candidate.promotionPiece = QUEEN;
                 moves.push_back(candidate);
             } else {
                 moves.push_back(candidate);

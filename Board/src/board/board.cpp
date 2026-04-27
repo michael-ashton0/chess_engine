@@ -330,16 +330,23 @@ void Board::unmakeMove(const Move& move) {
     enPassantSq = u.prevEnPassantSq;
 
     if (u.wasPromotion) {
-        pieceBitboards[idx(u.promotionPiece, us)] ^= toMask;
+        // Remove promoted piece from destination.
+        pieceBitboards[idx(u.promotionPiece, us)] &= ~toMask;
+
+        // Restore pawn to original square.
         pieceBitboards[idx(PAWN, us)] |= fromMask;
     } else {
         int pIndex = idx(move.piece, us);
-        pieceBitboards[pIndex] ^= toMask;
+
+        // Move piece back from destination to source.
+        pieceBitboards[pIndex] &= ~toMask;
         pieceBitboards[pIndex] |= fromMask;
     }
 
     if (u.wasCapture) {
         uint64_t capMask = 1ULL << u.capturedSq;
+
+        // Restore captured piece.
         pieceBitboards[idx(u.capturedPiece, them)] |= capMask;
     }
 
@@ -347,22 +354,22 @@ void Board::unmakeMove(const Move& move) {
         if (us == WHITE) {
             if (move.isKingsideCastle) {
                 // rook F1 -> H1
-                pieceBitboards[rook_w] ^= (1ULL << F1);
-                pieceBitboards[rook_w] |= (1ULL << H1);
+                pieceBitboards[rook_w] &= ~(1ULL << F1);
+                pieceBitboards[rook_w] |=  (1ULL << H1);
             } else {
                 // rook D1 -> A1
-                pieceBitboards[rook_w] ^= (1ULL << D1);
-                pieceBitboards[rook_w] |= (1ULL << A1);
+                pieceBitboards[rook_w] &= ~(1ULL << D1);
+                pieceBitboards[rook_w] |=  (1ULL << A1);
             }
         } else {
             if (move.isKingsideCastle) {
                 // rook F8 -> H8
-                pieceBitboards[rook_b] ^= (1ULL << F8);
-                pieceBitboards[rook_b] |= (1ULL << H8);
+                pieceBitboards[rook_b] &= ~(1ULL << F8);
+                pieceBitboards[rook_b] |=  (1ULL << H8);
             } else {
                 // rook D8 -> A8
-                pieceBitboards[rook_b] ^= (1ULL << D8);
-                pieceBitboards[rook_b] |= (1ULL << A8);
+                pieceBitboards[rook_b] &= ~(1ULL << D8);
+                pieceBitboards[rook_b] |=  (1ULL << A8);
             }
         }
     }

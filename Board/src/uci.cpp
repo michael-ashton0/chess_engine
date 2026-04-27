@@ -9,29 +9,6 @@
 #include "knight.h"
 #include "king.h"
 
-static std::vector<Move> generateLegalMoves(Board& board)
-{
-    std::vector<Move> pseudo;
-    std::vector<Move> legal;
-
-    generateMoves(board, pseudo);
-
-    Board::Side us = board.side;
-
-    for (const Move& move : pseudo) {
-        Board next = board;
-        next.makeMove(move);
-
-        int kingSq = next.kingSquare(us);
-
-        if (!next.isAttacked(kingSq, next.side)) {
-            legal.push_back(move);
-        }
-    }
-
-    return legal;
-}
-
 static bool parseMove(Board& board, const std::string& text, Move& out)
 {
     std::vector<Move> legalMoves = generateLegalMoves(board);
@@ -125,13 +102,41 @@ static Move chooseMove(Board& board)
 
 static void handleGo(Board& board, std::istringstream& iss)
 {
-    int depth = 3;
+    int depth = 5;
+    int movetime = -1;
+    int wtime = -1;
+    int btime = -1;
+    int winc = 0;
+    int binc = 0;
 
     std::string token;
     while (iss >> token) {
         if (token == "depth") {
             iss >> depth;
+        } else if (token == "movetime") {
+            iss >> movetime;
+        } else if (token == "wtime") {
+            iss >> wtime;
+        } else if (token == "btime") {
+            iss >> btime;
+        } else if (token == "winc") {
+            iss >> winc;
+        } else if (token == "binc") {
+            iss >> binc;
         }
+    }
+
+    // For now, choose depth based on available time.
+    // Later, replace this with real iterative deepening.
+    int sideTime = board.side == Board::WHITE ? wtime : btime;
+
+    if (movetime > 0) {
+        depth = 4;
+    } else if (sideTime > 0) {
+        if (sideTime < 5000) depth = 2;
+        else if (sideTime < 15000) depth = 3;
+        else if (sideTime < 60000) depth = 4;
+        else depth = 5;
     }
 
     std::vector<Move> legalMoves = generateLegalMoves(board);

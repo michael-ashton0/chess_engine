@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -Iinclude/
 
-TARGET = chess
+TARGET = 1ply
 
 SRCS = \
 	src/main.cpp \
@@ -17,7 +17,8 @@ SRCS = \
 	src/nps.cpp \
 	src/uci.cpp \
 	src/player/search.cpp \
-	src/player/evaluation.cpp
+	src/player/evaluation.cpp \
+	src/player/selfPlay.cpp \
 
 OBJS = $(SRCS:.cpp=.o)
 
