@@ -3,7 +3,7 @@
 //diagonal rook logic
 
 void BishopMoveGen::generateWhite(Board &board,
-                                  std::vector<Move> &moves) 
+                                  MoveList &moves) 
     {
         uint64_t bishops    = board.bishopsWhite();
         uint64_t pieces     = board.occupied();
@@ -39,7 +39,7 @@ void BishopMoveGen::generateWhite(Board &board,
 };
 
 void BishopMoveGen::generateBlack(Board &board,
-                                  std::vector<Move> &moves) 
+                                  MoveList &moves) 
     {
         uint64_t bishops    = board.bishopsBlack();
         uint64_t pieces     = board.occupied();

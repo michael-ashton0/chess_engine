@@ -1,10 +1,124 @@
-#include <vector>
 #include <algorithm>
+#include <chrono>
+#include <iostream>
+#include <vector>
 
 #include "search.h"
 #include "evaluation.h"
-#include "move.h"
+#include "movegen.h"
+#include "tt.h"
+#include "zobrist.h"
 
+static TranspositionTable TT(64);
+
+constexpr int CHECKMATE = 100000;
+
+static constexpr int MAX_PLY = 128;
+
+static Move killerMoves[MAX_PLY][2];
+static int historyHeuristic[2][64][64] = {};
+
+static int pieceValue(PieceType p)
+{
+    switch (p) {
+        case PAWN:   return 100;
+        case KNIGHT: return 320;
+        case BISHOP: return 330;
+        case ROOK:   return 500;
+        case QUEEN:  return 900;
+        case KING:   return 20000;
+    }
+
+    return 0;
+}
+
+void clearSearchTables()
+{
+    TT.clear();
+}
+
+static int sideIndex(Board::Side side)
+{
+    return side == Board::WHITE ? 0 : 1;
+}
+
+static bool sameMove(const Move& a, const Move& b)
+{
+    if (a.from < 0 || a.to < 0 || b.from < 0 || b.to < 0) {
+        return false;
+    }
+
+    if (a.from != b.from) return false;
+    if (a.to != b.to) return false;
+    if (a.piece != b.piece) return false;
+    if (a.isPromotion != b.isPromotion) return false;
+
+    if (a.isPromotion) {
+        return a.promotionPiece == b.promotionPiece;
+    }
+
+    return true;
+}
+
+static void addKillerMove(const Move& move, int ply)
+{
+    if (ply < 0 || ply >= MAX_PLY) {
+        return;
+    }
+
+    if (move.isCapture) {
+        return;
+    }
+
+    if (sameMove(move, killerMoves[ply][0])) {
+        return;
+    }
+
+    killerMoves[ply][1] = killerMoves[ply][0];
+    killerMoves[ply][0] = move;
+}
+
+static void addHistoryScore(Board::Side side, const Move& move, int depth)
+{
+    if (move.isCapture) {
+        return;
+    }
+
+    if (move.from < 0 || move.from >= 64 || move.to < 0 || move.to >= 64) {
+        return;
+    }
+
+    historyHeuristic[sideIndex(side)][move.from][move.to] += depth * depth;
+}
+
+struct SearchTimer {
+    using Clock = std::chrono::steady_clock;
+
+    Clock::time_point start;
+    int limitMs;
+
+    explicit SearchTimer(int ms)
+        : start(Clock::now()), limitMs(ms)
+    {}
+
+    bool outOfTime() const {
+        auto now = Clock::now();
+
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+            now - start
+        ).count();
+
+        return elapsed >= limitMs;
+    }
+
+    long long elapsedMs() const {
+        auto now = Clock::now();
+
+        return std::chrono::duration_cast<std::chrono::milliseconds>(
+            now - start
+        ).count();
+    }
+};
 
 static bool inCheck(Board& board)
 {
@@ -16,144 +130,155 @@ static bool inCheck(Board& board)
     return board.isAttacked(kingSq, them);
 }
 
-std::vector<Move> generateLegalMoves(Board& board)
+void generateLegalMoves(Board& board, MoveList& legalMoves)
 {
-    std::vector<Move> pseudo;
-    std::vector<Move> legal;
+    MoveList pseudoMoves;
+    legalMoves.clear();
 
-    pseudo.reserve(256);
-    legal.reserve(256);
-
-    generateMoves(board, pseudo);
+    generateMoves(board, pseudoMoves);
 
     Board::Side us = board.side;
 
-    for (const Move& move : pseudo) {
+    for (const Move& move : pseudoMoves) {
         board.makeMove(move);
 
         int kingSq = board.kingSquare(us);
 
         if (!board.isAttacked(kingSq, board.side)) {
-            legal.push_back(move);
+            legalMoves.push_back(move);
         }
 
         board.unmakeMove(move);
     }
-
-    return legal;
 }
 
-int scoreMove(const Move& move)
-{
-    int score = 0;
-
-    if (move.isPromotion) {
-        if (move.promotionPiece == QUEEN) score += 9000;
-        else if (move.promotionPiece == ROOK) score += 5000;
-        else if (move.promotionPiece == BISHOP) score += 3300;
-        else if (move.promotionPiece == KNIGHT) score += 3200;
+static int scoreMove(
+    const Move& move,
+    const Move& ttMove,
+    bool hasTTMove,
+    int ply,
+    Board::Side sideToMove
+) {
+    if (hasTTMove && sameMove(move, ttMove)) {
+        return 1'000'000;
     }
 
+    int score = 0;
+
     if (move.isCapture) {
-        score += 1000;
+        // mvvlva
+        score += 100'000;
+        score += 10 * pieceValue(move.capturedPiece);
+        score -= pieceValue(move.piece);
+    }
+
+    if (move.isPromotion) {
+        score += 80'000 + pieceValue(move.promotionPiece);
+    }
+
+    if (!move.isCapture) {
+        if (ply >= 0 && ply < MAX_PLY) {
+            if (sameMove(move, killerMoves[ply][0])) {
+                score += 70'000;
+            } else if (sameMove(move, killerMoves[ply][1])) {
+                score += 60'000;
+            }
+        }
+
+        if (move.from >= 0 && move.from < 64 && move.to >= 0 && move.to < 64) {
+            score += historyHeuristic[sideIndex(sideToMove)][move.from][move.to];
+        }
     }
 
     return score;
 }
 
-static int negamax_only(Board& board, int depth, int ply)
-{
-    if (depth == 0) {
-        return evaluate(board);
+static void orderMoves(
+    MoveList& moves,
+    const Move& ttMove,
+    bool hasTTMove,
+    int ply,
+    Board::Side sideToMove
+) {
+    std::sort(moves.begin(), moves.end(), [&](const Move& a, const Move& b) {
+        return scoreMove(a, ttMove, hasTTMove, ply, sideToMove)
+             > scoreMove(b, ttMove, hasTTMove, ply, sideToMove);
+    });
+}
+
+static int negamax(
+    Board& board,
+    int depth,
+    int ply,
+    int alpha,
+    int beta,
+    const SearchTimer* timer,
+    bool& stopped
+) {
+    if (timer && timer->outOfTime()) {
+        stopped = true;
+        return 0;
     }
 
-    std::vector<Move> moves = generateLegalMoves(board);
+    if (depth == 0) {
+        return evaluate(board); // later: quiescence(board, ply, alpha, beta)
+    }
+
+    int originalAlpha = alpha;
+
+    uint64_t key = Zobrist::computeHash(board);
+
+    int ttScore = 0;
+    Move ttMove{};
+    bool hasTTMove = TT.probeMoveOnly(key, ttMove);
+
+    if (TT.probe(key, depth, alpha, beta, ttScore, ttMove)) {
+        return ttScore;
+    }
+
+    MoveList moves;
+    generateLegalMoves(board, moves);
 
     if (moves.empty()) {
         if (inCheck(board)) {
             return -CHECKMATE + ply;
         }
 
-        return 0; // stalemate
+        return 0;
     }
+    Board::Side us = board.side;
+    orderMoves(moves, ttMove, hasTTMove, ply, us);
 
     int bestScore = -CHECKMATE;
+    Move bestMove = moves[0];
 
     for (const Move& move : moves) {
-        board.makeMove(move);
-
-        int score = -negamax_only(board, depth - 1, ply + 1);
-
-        board.unmakeMove(move);
-
-        if (score > bestScore) {
-            bestScore = score;
+        if (timer && timer->outOfTime()) {
+            stopped = true;
+            return 0;
         }
-    }
 
-    return bestScore;
-}
-
-
-Move findBestMove_ngo(Board& board, int depth)
-{
-    std::vector<Move> moves = generateLegalMoves(board);
-
-    Move bestMove;
-
-    if (moves.empty()) {
-        return bestMove;
-    }
-
-    int bestScore = -CHECKMATE;
-
-    for (const Move& move : moves) {
         board.makeMove(move);
 
-        int score = -negamax_only(board, depth - 1, 1);
+        int score = -negamax(
+            board,
+            depth - 1,
+            ply + 1,
+            -beta,
+            -alpha,
+            timer,
+            stopped
+        );
 
         board.unmakeMove(move);
+
+        if (stopped) {
+            return 0;
+        }
 
         if (score > bestScore) {
             bestScore = score;
             bestMove = move;
-        }
-    }
-
-    return bestMove;
-}
-
-static int negamax_ab(Board& board, int depth, int ply, int alpha, int beta)
-{
-    if (depth == 0) {
-        return evaluate(board);
-    }
-
-    std::vector<Move> moves = generateLegalMoves(board);
-
-    std::sort(moves.begin(), moves.end(), [](const Move& a, const Move& b) {
-    return scoreMove(a) > scoreMove(b);
-    });
-
-    if (moves.empty()) {
-        if (inCheck(board)) {
-            return -CHECKMATE + ply;
-        }
-
-        return 0; // stalemate
-    }
-
-    int bestScore = -CHECKMATE;
-
-    for (const Move& move : moves) {
-        board.makeMove(move);
-
-        int score = -negamax_ab(board, depth - 1, ply + 1, -beta, -alpha);
-
-        board.unmakeMove(move);
-
-        if (score > bestScore) {
-            bestScore = score;
         }
 
         if (score > alpha) {
@@ -161,36 +286,78 @@ static int negamax_ab(Board& board, int depth, int ply, int alpha, int beta)
         }
 
         if (alpha >= beta) {
-            break; // beta cutoff
+            break;
         }
     }
+
+    TTFlag flag;
+
+    if (bestScore <= originalAlpha) {
+        flag = TT_UPPERBOUND;
+    } else if (bestScore >= beta) {
+        flag = TT_LOWERBOUND;
+    } else {
+        flag = TT_EXACT;
+    }
+
+    TT.store(key, depth, bestScore, flag, bestMove);
 
     return bestScore;
 }
 
-Move findBestMove(Board& board, int depth)
-{
-    std::vector<Move> moves = generateLegalMoves(board);
-    std::sort(moves.begin(), moves.end(), [](const Move& a, const Move& b) {
-        return scoreMove(a) > scoreMove(b);
-    });
+static Move findBestMoveTimedAtDepth(
+    Board& board,
+    int depth,
+    const SearchTimer* timer,
+    bool& stopped,
+    int& completedScore
+) {
+    uint64_t key = Zobrist::computeHash(board);
+
+    Move ttMove;
+    bool hasTTMove = TT.probeMoveOnly(key, ttMove);
+
+    Board::Side us = board.side;
+    MoveList moves;
+    generateLegalMoves(board, moves);
+    orderMoves(moves, ttMove, hasTTMove, 0, us);
 
     Move bestMove;
 
     if (moves.empty()) {
+        completedScore = 0;
         return bestMove;
     }
+
+    bestMove = moves[0];
 
     int bestScore = -CHECKMATE;
     int alpha = -CHECKMATE;
     int beta = CHECKMATE;
 
     for (const Move& move : moves) {
+        if (timer && timer -> outOfTime()) {
+            stopped = true;
+            return bestMove;
+        }
+
         board.makeMove(move);
 
-        int score = -negamax_ab(board, depth - 1, 1, -beta, -alpha);
+        int score = -negamax(
+            board,
+            depth - 1,
+            1,
+            -beta,
+            -alpha,
+            timer,
+            stopped
+        );
 
         board.unmakeMove(move);
+
+        if (stopped) {
+            return bestMove;
+        }
 
         if (score > bestScore) {
             bestScore = score;
@@ -202,5 +369,108 @@ Move findBestMove(Board& board, int depth)
         }
     }
 
+    completedScore = bestScore;
     return bestMove;
 }
+
+Move findBestMoveIterativeTimed(Board& board, int maxDepth, int timeMs)
+{
+    MoveList moves;
+    generateLegalMoves(board, moves);
+
+    if (moves.empty()) {
+        return Move{};
+    }
+
+    if (moves.size() == 1) {
+        return moves[0];
+    }
+
+    // Always have a legal fallback.
+    Move bestMove = moves[0];
+
+    // Avoid weird zero or negative time budgets.
+    if (timeMs < 10) {
+        timeMs = 10;
+    }
+
+    SearchTimer timer(timeMs);
+
+    for (int depth = 1; depth <= maxDepth; ++depth) {
+        bool stopped = false;
+        int score = 0;
+
+        Move currentBest = findBestMoveTimedAtDepth(
+            board,
+            depth,
+            &timer,
+            stopped,
+            score
+        );
+
+        // Important:
+        // Only trust the move if the full depth completed.
+        if (stopped) {
+            break;
+        }
+
+        bestMove = currentBest;
+
+        std::cout << "info depth " << depth
+                  << " score cp " << score
+                  << " time " << timer.elapsedMs()
+                  << " pv " << moveName(bestMove)
+                  << std::endl;
+
+        if (timer.outOfTime()) {
+            break;
+        }
+    }
+
+    return bestMove;
+}
+
+// Move findBestMove(Board& board, int depth)
+// {
+//     MoveList moves;
+//     generateLegalMoves(board, moves);
+
+//     uint64_t key = Zobrist::computeHash(board);
+
+//     Move ttMove;
+//     bool hasTTMove = TT.probeMoveOnly(key, ttMove);
+
+//     Board::Side us = board.side;
+//     orderMoves(moves, ttMove, hasTTMove, ply, us);
+
+//     Move bestMove;
+
+//     if (moves.empty()) {
+//         return bestMove;
+//     }
+
+//     int bestScore = -CHECKMATE;
+//     int alpha = -CHECKMATE;
+//     int beta = CHECKMATE;
+
+//     for (const Move& move : moves) {
+//         board.makeMove(move);
+
+//         int score = -negamax(board, depth - 1, 1, -beta, -alpha);
+
+//         board.unmakeMove(move);
+
+//         if (score > bestScore) {
+//             bestScore = score;
+//             bestMove = move;
+//         }
+
+//         if (score > alpha) {
+//             alpha = score;
+//         }
+//     }
+
+//     TT.store(key, depth, bestScore, TT_EXACT, bestMove);
+
+//     return bestMove;
+// }

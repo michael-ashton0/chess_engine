@@ -2,6 +2,7 @@
 #include "inclusions.h"
 #include "bitboard.h"
 #include "board.h"
+#include "movelist.h"
 
 static constexpr uint64_t LEFT2  = FILE_A | FILE_B;
 static constexpr uint64_t RIGHT2 = FILE_G | FILE_H;
@@ -16,8 +17,8 @@ namespace KnightMoveGen {
     void initKnightMoves();
 
     void generateWhite(Board& board, 
-                      std::vector<Move>& moves);
+                      MoveList& moves);
     
     void generateBlack(Board& board, 
-                      std::vector<Move>& moves);
+                      MoveList& moves);
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include "inclusions.h"
 #include "board.h"
+#include "movelist.h"
 
 namespace KingMoveGen {
    extern uint64_t kingMoves[64];
@@ -8,14 +9,14 @@ namespace KingMoveGen {
     void initKingMoves();
 
     void generateWhite(Board& board, 
-                      std::vector<Move>& moves);
+                      MoveList& moves);
     
     void generateBlack(Board& board, 
-                      std::vector<Move>& moves);
+                      MoveList& moves);
     
     void generateWhiteCastleMoves(Board& board,
-                                std::vector<Move>& moves);
+                                MoveList& moves);
     
     void generateBlackCastleMoves(Board& board,
-                                std::vector<Move>& moves);
+                                MoveList& moves);
 }

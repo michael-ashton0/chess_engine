@@ -1,5 +1,8 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -Iinclude/
+# CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -Iinclude/
+
+CXXFLAGS = -std=c++17 -Wall -Wextra -O3 -DNDEBUG -march=native -Iinclude/
+LDFLAGS = 
 
 TARGET = 1ply
 
@@ -7,6 +10,9 @@ SRCS = \
 	src/main.cpp \
 	src/board/board.cpp \
 	src/board/move.cpp \
+	src/board/zobrist.cpp \
+	src/board/tt.cpp \
+	src/board/movegen.cpp \
 	src/pieces/pawn.cpp \
 	src/pieces/precomputed/knight.cpp \
 	src/pieces/precomputed/king.cpp \

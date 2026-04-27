@@ -3,7 +3,7 @@
 uint64_t KnightMoveGen::knightMoves[64] = {};
 
 void KnightMoveGen::generateWhite(Board& board,
-    std::vector<Move>& moves) {
+    MoveList& moves) {
         uint64_t knights = board.knightsWhite();
         uint64_t enemies = board.occBlack();
 
@@ -33,7 +33,7 @@ void KnightMoveGen::generateWhite(Board& board,
     }
     
 void KnightMoveGen::generateBlack(Board& board,
-    std::vector<Move>& moves) {
+    MoveList& moves) {
         uint64_t knights = board.knightsBlack();
         uint64_t enemies = board.occWhite();
 

@@ -2,18 +2,18 @@
 #include "knight.h"
 #include "king.h"
 #include "selfPlay.h"
+#include "zobrist.h"
 
 int main()
 {
+    Zobrist::init();
+
     KnightMoveGen::initKnightMoves();
     KingMoveGen::initKingMoves();
 
     uciLoop();
 
     return 0;
-
-    // KnightMoveGen::initKnightMoves();
-    // KingMoveGen::initKingMoves();
 
     // GameResult result = playSelfGame(7, 7, 300);
 

@@ -3,7 +3,7 @@
 // base slider logic
 
 void RookMoveGen::generateWhite(Board &board,
-                                std::vector<Move> &moves)
+                                MoveList &moves)
 {
     uint64_t rooks      = board.rooksWhite();
     uint64_t pieces     = board.occupied();
@@ -51,7 +51,7 @@ void RookMoveGen::generateWhite(Board &board,
 };
 
 void RookMoveGen::generateBlack(Board &board,
-                                std::vector<Move> &moves)
+                                MoveList &moves)
 {
     uint64_t rooks      = board.rooksBlack();
     uint64_t pieces     = board.occupied();

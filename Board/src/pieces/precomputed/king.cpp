@@ -8,7 +8,7 @@ uint64_t BR_CORNER = FILE_H & RANK_1;
 
 uint64_t KingMoveGen::kingMoves[64] = {};
 
-void KingMoveGen::generateWhite(Board& board, std::vector<Move>& moves) {
+void KingMoveGen::generateWhite(Board& board, MoveList& moves) {
     uint64_t kings   = board.kingWhite();
     uint64_t enemies = board.occBlack();
 
@@ -43,7 +43,7 @@ void KingMoveGen::generateWhite(Board& board, std::vector<Move>& moves) {
 }
     
 void KingMoveGen::generateBlack(Board& board,
-    std::vector<Move>& moves) {
+    MoveList& moves) {
         uint64_t kings = board.kingBlack();
         uint64_t enemies = board.occWhite();
 
@@ -77,7 +77,7 @@ void KingMoveGen::generateBlack(Board& board,
     }
 
 void KingMoveGen::generateWhiteCastleMoves(Board& board,
-                                           std::vector<Move>& moves)
+                                           MoveList& moves)
 {
     // kingside
     if (board.canWhiteCastleKingside() &&
@@ -113,7 +113,7 @@ void KingMoveGen::generateWhiteCastleMoves(Board& board,
 }
 
 void KingMoveGen::generateBlackCastleMoves(Board& board,
-                                           std::vector<Move>& moves)
+                                           MoveList& moves)
 {
     // kingside
     if (board.canBlackCastleKingside() &&

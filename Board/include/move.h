@@ -13,7 +13,7 @@ struct Move {
     uint8_t from;   //0-63
     uint8_t to;     //0-63
     bool isCapture = false;
-    PieceType capturedPiece;
+    PieceType capturedPiece = PAWN;
     
     // Pawn Specific
     // might get scrapped if i can't figure out 
@@ -22,15 +22,13 @@ struct Move {
     bool isDoublePush   = false;
     bool isEnPassant    = false;
     bool isPromotion    = false;
-    PieceType promotionPiece;
+    PieceType promotionPiece = QUEEN;
     
     // King Specific
     bool isCastle           = false;
     bool isKingsideCastle   = false;
     bool isQueensideCastle  = false;
 };
-
-void generateMoves(Board& board, std::vector<Move>& moves);
 
 std::string squareName(int sq);
 

@@ -1,5 +1,6 @@
 #include "selfPlay.h"
 #include "sstream"
+#include "movegen.h"
 
 std::string positionKey(const Board& board)
 {
@@ -39,7 +40,8 @@ GameResult playSelfGame(int whiteDepth, int blackDepth, int maxPlies)
 
         int depth = (board.side == Board::WHITE) ? whiteDepth : blackDepth;
 
-        std::vector<Move> legalMoves = generateLegalMoves(board);
+        MoveList legalMoves;
+        generateLegalMoves(board, legalMoves);
 
         if (legalMoves.empty()) {
             Board::Side sideToMove = board.side;
@@ -58,7 +60,7 @@ GameResult playSelfGame(int whiteDepth, int blackDepth, int maxPlies)
             return {0, ply};
         }
 
-        Move best = findBestMove(board, depth);
+        Move best = findBestMoveIterativeTimed(board, depth, 10000);
 
         if (best.isCapture || best.piece == PAWN) {
             halfmoveClock = 0;

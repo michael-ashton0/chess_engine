@@ -5,7 +5,7 @@
 // if an en passant square is present, no matter what we remove it after each move
 // promotions are here but not sure if optimal
 void PawnMoveGen::generateWhite(Board& board,
-                              std::vector<Move>& moves,
+                              MoveList& moves,
                               uint64_t enPassantSquare) 
 {
     uint64_t pawns      = board.pawnsWhite();
@@ -58,7 +58,7 @@ void PawnMoveGen::generateWhite(Board& board,
 }
 
 void PawnMoveGen::generateBlack(Board& board,
-                                std::vector<Move>& moves,
+                                MoveList& moves,
                                 uint64_t enPassantSquare) {
 
     uint64_t pawns      = board.pawnsBlack();

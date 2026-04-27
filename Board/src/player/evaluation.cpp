@@ -18,14 +18,14 @@ static int mirrorSquare(int sq)
 // For Black, use mirrorSquare(sq).
 
 static const int pawnPST[64] = {
-     0,  0,  0,  0,  0,  0,  0,  0,
-    50, 50, 50, 50, 50, 50, 50, 50,
-    10, 10, 20, 30, 30, 20, 10, 10,
-     5,  5, 10, 25, 25, 10,  5,  5,
-     0,  0,  0, 20, 20,  0,  0,  0,
-     5, -5,-10,  0,  0,-10, -5,  5,
-     5, 10, 10,-20,-20, 10, 10,  5,
-     0,  0,  0,  0,  0,  0,  0,  0
+     0,  0,  0,  0,  0,  0,  0,  0, 
+     5,  5,  5,  0,  0,  5,  5,  5, 
+     5,  5, 10, 15, 15, 10,  5,  5, 
+     0,  0, 10, 25, 25, 10,  0,  0, 
+     5,  5, 15, 30, 30, 15,  5,  5, 
+    10, 10, 20, 30, 30, 20, 10, 10, 
+    30, 30, 30, 30, 30, 30, 30, 30, 
+     0,  0,  0,  0,  0,  0,  0,  0  
 };
 
 static const int knightPST[64] = {
@@ -144,23 +144,21 @@ static int evaluateDevelopment(const Board& board)
 {
     int score = 0;
 
-    // Penalize undeveloped minor pieces.
-    // White starts: knights B1/G1, bishops C1/F1.
-    if (board.knightsWhite() & BB(B1)) score -= 15;
-    if (board.knightsWhite() & BB(G1)) score -= 15;
-    if (board.bishopsWhite() & BB(C1)) score -= 15;
-    if (board.bishopsWhite() & BB(F1)) score -= 15;
+    constexpr int undevelopedMinorPenalty = 8;
+    constexpr int earlyQueenPenalty = 3;
 
-    // Black starts: knights B8/G8, bishops C8/F8.
-    if (board.knightsBlack() & BB(B8)) score += 15;
-    if (board.knightsBlack() & BB(G8)) score += 15;
-    if (board.bishopsBlack() & BB(C8)) score += 15;
-    if (board.bishopsBlack() & BB(F8)) score += 15;
+    if (board.knightsWhite() & BB(B1)) score -= undevelopedMinorPenalty;
+    if (board.knightsWhite() & BB(G1)) score -= undevelopedMinorPenalty;
+    if (board.bishopsWhite() & BB(C1)) score -= undevelopedMinorPenalty;
+    if (board.bishopsWhite() & BB(F1)) score -= undevelopedMinorPenalty;
 
-    // Penalize early queen movement only lightly.
-    // This assumes queen on starting square is normal.
-    if (!(board.queensWhite() & BB(D1))) score -= 5;
-    if (!(board.queensBlack() & BB(D8))) score += 5;
+    if (board.knightsBlack() & BB(B8)) score += undevelopedMinorPenalty;
+    if (board.knightsBlack() & BB(G8)) score += undevelopedMinorPenalty;
+    if (board.bishopsBlack() & BB(C8)) score += undevelopedMinorPenalty;
+    if (board.bishopsBlack() & BB(F8)) score += undevelopedMinorPenalty;
+
+    if (!(board.queensWhite() & BB(D1))) score -= earlyQueenPenalty;
+    if (!(board.queensBlack() & BB(D8))) score += earlyQueenPenalty;
 
     return score;
 }
@@ -191,6 +189,20 @@ static int pawnShieldScore(uint64_t pawns, int kingSq, bool white)
     return score;
 }
 
+static bool kingNeedsPawnShield(int kingSq, bool white)
+{
+    int r = rankOf(kingSq);
+    int f = fileOf(kingSq);
+
+    if (white) {
+        // White king on first rank and near queenside/kingside castled area.
+        return r == 0 && (f <= 2 || f >= 5);
+    } else {
+        // Black king on eighth rank and near queenside/kingside castled area.
+        return r == 7 && (f <= 2 || f >= 5);
+    }
+}
+
 static int evaluateKingSafety(const Board& board)
 {
     int score = 0;
@@ -198,15 +210,19 @@ static int evaluateKingSafety(const Board& board)
     int whiteKingSq = board.kingSquare(Board::WHITE);
     int blackKingSq = board.kingSquare(Board::BLACK);
 
-    score += pawnShieldScore(board.pawnsWhite(), whiteKingSq, true);
-    score -= pawnShieldScore(board.pawnsBlack(), blackKingSq, false);
+    if (kingNeedsPawnShield(whiteKingSq, true)) {
+        score += pawnShieldScore(board.pawnsWhite(), whiteKingSq, true);
+    }
 
-    // Light penalty for king stuck in center.
+    if (kingNeedsPawnShield(blackKingSq, false)) {
+        score -= pawnShieldScore(board.pawnsBlack(), blackKingSq, false);
+    }
+
     int whiteFile = fileOf(whiteKingSq);
     int blackFile = fileOf(blackKingSq);
 
-    if (whiteFile >= 2 && whiteFile <= 5) score -= 15;
-    if (blackFile >= 2 && blackFile <= 5) score += 15;
+    if (whiteFile >= 2 && whiteFile <= 5) score -= 8;
+    if (blackFile >= 2 && blackFile <= 5) score += 8;
 
     return score;
 }

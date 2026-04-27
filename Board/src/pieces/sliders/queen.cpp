@@ -3,7 +3,7 @@
 // Combines the other sliders, maybe not most optimal
 // but will switch to magic bbs so not relevant for now
 void QueenMoveGen::generateWhite(Board& board,
-                                std::vector<Move>& moves) 
+                                MoveList& moves) 
     {
         uint64_t queens     = board.queensWhite();
         uint64_t pieces     = board.occupied();
@@ -39,7 +39,7 @@ void QueenMoveGen::generateWhite(Board& board,
 };
 
 void QueenMoveGen::generateBlack(Board& board,
-                                std::vector<Move>& moves) 
+                                MoveList& moves) 
     {
         uint64_t queens     = board.queensBlack();
         uint64_t pieces     = board.occupied();

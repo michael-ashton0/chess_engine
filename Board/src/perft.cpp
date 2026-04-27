@@ -1,31 +1,26 @@
 #include <cstdint>
 #include "perft.h"
-#include "move.h"
+#include "movegen.h"
+#include "nps.h"
 
 uint64_t perft(Board& board, int depth)
 {
-    if (depth == 0)
+    if (depth == 0) {
+        //NpsCounter::addNodes();
         return 1;
+    }
 
-    std::vector<Move> moves;
-    generateMoves(board, moves);
+    MoveList moves;
+    generateLegalMoves(board, moves);
 
     uint64_t nodes = 0;
 
-    Board::Side us = board.side;
+    for (const Move& move : moves) {
+        board.makeMove(move);
 
-    for (const Move& move : moves)
-    {
-        Board next = board;
-        next.makeMove(move);
+        nodes += perft(board, depth - 1);
 
-        int kingSq = next.kingSquare(us);
-
-        // after makeMove, next.side should be the opponent
-        if (!next.isAttacked(kingSq, next.side))
-        {
-            nodes += perft(next, depth - 1);
-        }
+        board.unmakeMove(move);
     }
 
     return nodes;
@@ -33,7 +28,7 @@ uint64_t perft(Board& board, int depth)
 
 void positionsByMove(Board& board, int depth)
 {
-    std::vector<Move> moves;
+    MoveList moves;
     generateMoves(board, moves);
 
     for (const Move& move : moves)
